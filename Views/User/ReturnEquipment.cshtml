@@ -1,0 +1,99 @@
+﻿@using System.Collections.Generic
+@model dynamic
+
+@{
+    ViewData["Title"] = "Return Equipment";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">Return Equipment</h2>
+            <p class="text-muted">Return your borrowed equipment items</p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">@item.Name</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Label:</strong> @item.Label
+                            </div>
+                            <div class="mb-2">
+                                <strong>Category:</strong> @item.Category
+                            </div>
+                            <div class="mb-2">
+                                <strong>Type:</strong> @item.Type
+                            </div>
+                            <div class="mb-2">
+                                <strong>Quantity:</strong> @item.Quantity
+                            </div>
+                            <div class="mb-2">
+                                <strong>Borrow Date:</strong> @item.BorrowDate.ToString("MMM dd, yyyy")
+                            </div>
+                            <div class="mb-3">
+                                <strong>Expected Return:</strong> @item.ExpectedReturnDate.ToString("MMM dd, yyyy")
+                            </div>
+
+                            @{
+                                var daysUntilDue = (item.ExpectedReturnDate - DateTime.Now).Days;
+                                var isOverdue = DateTime.Now > item.ExpectedReturnDate;
+                            }
+
+                            @if (isOverdue)
+                            {
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    <strong>Overdue!</strong> @((DateTime.Now - item.ExpectedReturnDate).Days) day(s) late
+                                </div>
+                            }
+                            else if (daysUntilDue <= 2)
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-clock me-1"></i>
+                                    Due in @daysUntilDue day(s)
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    On track
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer">
+                            <form method="post" asp-action="ReturnEquipment">
+                                <input type="hidden" name="BorrowID" value="@item.BorrowID" />
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-arrow-return-left me-1"></i>Return Item
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check-circle display-1 text-success"></i>
+                <h4 class="mt-3 text-success">All Clear!</h4>
+                <p class="text-muted">You have no equipment to return at the moment.</p>
+                <a href="@Url.Action("BorrowEquipment")" class="btn btn-primary mt-3">
+                    <i class="bi bi-laptop me-1"></i>Borrow Equipment
+                </a>
+            </div>
+        </div>
+    }
+</div>

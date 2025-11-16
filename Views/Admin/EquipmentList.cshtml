@@ -1,0 +1,196 @@
+﻿@model IEnumerable<Inventory_System.Models.Equipment>
+
+@{
+    ViewData["Title"] = "Equipment List";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Equipment Inventory Overview</h2>
+        <a href="@Url.Action("ManageEquipment", "Admin")" class="btn btn-secondary">
+            <i class="bi bi-gear-fill"></i> Manage Equipment
+        </a>
+    </div>
+
+    <!-- 🟢 Equipment Status Counters (Now Clickable) -->
+    @{
+        int availableCount = Model.Count(e => e.Status == "Available");
+        int borrowedCount = Model.Count(e => e.Status == "Borrowed");
+        int outOfStockCount = Model.Count(e => e.Status == "Out of Stock");
+    }
+
+    <div class="mb-4">
+        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Available" })"
+           class="badge bg-success me-2 p-2 text-decoration-none">
+            🟢 @availableCount Available
+        </a>
+        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Borrowed" })"
+           class="badge bg-warning text-dark me-2 p-2 text-decoration-none">
+            🟡 @borrowedCount Borrowed
+        </a>
+        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Out of Stock" })"
+           class="badge bg-danger p-2 text-decoration-none">
+            🔴 @outOfStockCount Out of Stock
+        </a>
+        <a href="@Url.Action("EquipmentList", "Admin")"
+           class="badge bg-secondary p-2 text-decoration-none">
+            🔁 Show All
+        </a>
+    </div>
+
+    <!-- 🔍 Search & Filter Section -->
+    <!-- 🔍 Search & Filter Section -->
+    <form method="get" asp-action="EquipmentList" class="row g-3 mb-4">
+
+        <!-- Search Box -->
+        <div class="col-md-3">
+            <input type="text" name="searchTerm" class="form-control" placeholder="Search by name or description"
+                   value="@Context.Request.Query["searchTerm"]" />
+        </div>
+
+        <!-- ✅ Category Dropdown -->
+        <div class="col-md-2">
+            <select name="categoryFilter" class="form-select filter-dropdown">
+                <option value="">-- All Categories --</option>
+                <option value="Consumable" selected="@(Context.Request.Query["categoryFilter"] == "Consumable")">Consumable</option>
+                <option value="Non-Consumable" selected="@(Context.Request.Query["categoryFilter"] == "Non-Consumable")">Non-Consumable</option>
+            </select>
+        </div>
+
+        <!-- ✅ Type Dropdown (Grouped by Category) -->
+        <div class="col-md-2">
+            <select name="typeFilter" class="form-select filter-dropdown">
+                <option value="">-- All Types --</option>
+
+                <optgroup label="Consumable">
+                    <option value="Office Supplies" selected="@(Context.Request.Query["typeFilter"] == "Office Supplies")">Office Supplies</option>
+                    <option value="Cleaning Supplies" selected="@(Context.Request.Query["typeFilter"] == "Cleaning Supplies")">Cleaning Supplies</option>
+                </optgroup>
+
+                <optgroup label="Non-Consumable">
+                    <option value="ICT Equipment" selected="@(Context.Request.Query["typeFilter"] == "ICT Equipment")">ICT Equipment</option>
+                    <option value="Office Equipment" selected="@(Context.Request.Query["typeFilter"] == "Office Equipment")">Office Equipment</option>
+                    <option value="Audio-Visual Equipment" selected="@(Context.Request.Query["typeFilter"] == "Audio-Visual Equipment")">Audio-Visual Equipment</option>
+                    <option value="Sports Equipment" selected="@(Context.Request.Query["typeFilter"] == "Sports Equipment")">Sports Equipment</option>
+                    <option value="Maintenance Tools" selected="@(Context.Request.Query["typeFilter"] == "Maintenance Tools")">Maintenance Tools</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <!-- ✅ Label Dropdown -->
+        <div class="col-md-2">
+            <select name="labelFilter" class="form-select filter-dropdown">
+                <option value="">-- All Labels --</option>
+                <option value="Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Borrowable")">Borrowable</option>
+                <option value="Non-Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Non-Borrowable")">Non-Borrowable</option>
+            </select>
+        </div>
+
+        <!-- ✅ Status Dropdown -->
+        <div class="col-md-3">
+            <select name="statusFilter" class="form-select filter-dropdown">
+                @{
+                    var currentStatus = Context.Request.Query["statusFilter"].ToString();
+                }
+                <option value="">-- All Status --</option>
+                <option value="Available" selected="@(currentStatus == "Available")">Available</option>
+                <option value="Borrowed" selected="@(currentStatus == "Borrowed")">Borrowed</option>
+                <option value="Out of Stock" selected="@(currentStatus == "Out of Stock")">Out of Stock</option>
+            </select>
+        </div>
+
+        <!-- Buttons -->
+        <div class="col-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a href="@Url.Action("EquipmentList", "Admin")" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Clear
+            </a>
+        </div>
+    </form>
+
+
+    <!-- 🧱 Equipment Cards -->
+    <div class="row" id="equipmentList">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-md-3 mb-4 equipment-card"
+                     data-name="@item.Name.ToLower()"
+                     data-category="@item.Category"
+                     data-type="@item.Type"
+                     data-label="@item.Label"
+                     data-status="@item.Status">
+
+                    <div class="card shadow-sm h-100">
+                        <img src="~/images/equipment/@(item.ImagePath ?? "no-image.png")"
+                             alt="@item.Name"
+                             class="card-img-top"
+                             style="height:200px; object-fit:cover; border-bottom: 1px solid #eee;" />
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-primary fw-semibold">@item.Name</h5>
+                            <p class="card-text text-muted small mb-2">@item.Description</p>
+
+                            <p class="mb-1">
+                                <strong>Category:</strong> @item.Category <br />
+                                <strong>Type:</strong> @item.Type <br />
+                                <strong>Label:</strong> @item.Label
+                            </p>
+
+                            <p class="mb-2">
+                                <strong>Status:</strong>
+                                @if (item.Status == "Available")
+                                {
+                                    <span class="badge bg-success">@item.Status</span>
+                                }
+                                else if (item.Status == "Borrowed")
+                                {
+                                    <span class="badge bg-warning text-dark">@item.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">@item.Status</span>
+                                }
+                            </p>
+
+                            <p class="mb-3">
+                                <strong>Available Quantity:</strong> @item.Quantity
+                            </p>
+
+                            <div class="mt-auto">
+                                <a href="@Url.Action("EditEquipment", "Admin", new { id = item.EquipmentID })"
+                                   class="btn btn-sm btn-primary w-100">
+                                    <i class="bi bi-pencil-square"></i> Manage
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center">
+                <p class="text-muted mt-5">No equipment items found.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Optional live search (instant filter without reload)
+        $(document).ready(function () {
+            $('input[name="searchTerm"]').on('keyup', function () {
+                var searchValue = $(this).val().toLowerCase();
+                $('.equipment-card').each(function () {
+                    var name = $(this).data('name');
+                    $(this).toggle(name.includes(searchValue));
+                });
+            });
+        });
+    </script>
+}

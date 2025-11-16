@@ -1,0 +1,206 @@
+﻿@model IEnumerable<Inventory_System.Models.BorrowRecord>
+
+@{
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
+    ViewData["Title"] = "User Dashboard";
+
+    var userType = Context.Session.GetString("UserType");
+    var userName = Context.Session.GetString("Username");
+
+    var borrowedItems = ViewBag.BorrowedItems as IEnumerable<dynamic> ?? new List<dynamic>();
+    var overdueItems = ViewBag.OverdueItems as IEnumerable<dynamic> ?? new List<dynamic>();
+
+    var returnedCount = ViewBag.ReturnedCount ?? 0;
+    var totalItems = ViewBag.TotalItems ?? 0;
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome back, @userName! 👋</h2>
+
+            <div class="text-muted small d-flex align-items-center mt-1">
+                <span class="me-3 text-primary fw-semibold">
+                    <i class="bi bi-person-badge me-1"></i>@userType
+                </span>
+
+                <span>
+                    <i class="bi bi-laptop me-1"></i>
+                    @if (userType == "Instructor")
+                    {
+                        <span>You can borrow up to <strong class="text-primary">3 items</strong> at a time.</span>
+                    }
+                    else
+                    {
+                        <span>You can borrow <strong class="text-primary">1 item</strong> at a time.</span>
+                    }
+                </span>
+            </div>
+        </div>
+
+        <div class="text-end mt-3 mt-md-0">
+            <div class="fw-semibold text-secondary" style="font-size: 1.05rem;">
+                <i class="bi bi-calendar-check me-2"></i>@DateTime.Now.ToString("dddd, MMMM d, yyyy")
+            </div>
+            <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>@DateTime.Now.ToString("hh:mm tt")
+            </small>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <!-- Total Equipment -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-laptop text-primary" style="font-size: 2.2rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-primary">@totalItems</h2>
+                    <p class="text-muted">Total Equipment Available</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Returned Items -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card shadow-sm border-0 rounded-3 h-100">
+                <div class="card-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle text-success" style="font-size: 2.2rem;"></i>
+                    </div>
+                    <h2 class="fw-bold text-success">@returnedCount</h2>
+                    <p class="text-muted">Items Returned</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Borrow Equipment Button -->
+        <div class="col-lg-4 col-md-12">
+            <a href="@Url.Action("BorrowEquipment", "User")" class="text-decoration-none">
+                <div class="card shadow-sm border-0 rounded-3 h-100 borrow-action-card"
+                     style="background:#173B64;">
+                    <div class="card-body d-flex flex-column justify-content-center align-items-center text-center text-white py-4">
+                        <i class="bi bi-plus-circle mb-3" style="font-size:2rem;color:#FFDE70;"></i>
+                        <h5 class="fw-bold mb-1 borrow-label text-white">Borrow Equipment</h5>
+                        <p class="mb-0" style="opacity:.85;">Click to browse and borrow items</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Currently Borrowed -->
+    <div class="mb-4">
+        <h5 class="fw-bold text-secondary mb-3">
+            <i class="bi bi-box-arrow-in-down me-2"></i>Currently Borrowed Items
+        </h5>
+
+        @if (borrowedItems.Any())
+        {
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light" style="background:#eef3fb;">
+                        <tr class="fw-semibold text-secondary">
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Borrow Date</th>
+                            <th>Expected Return</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in borrowedItems)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.Name</td>
+                                <td><span class="badge bg-primary">@item.Quantity</span></td>
+                                <td>@item.BorrowDate.ToString("MMM d, yyyy")</td>
+                                <td>@item.ExpectedReturnDate.ToString("MMM d, yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info d-flex align-items-center shadow-sm border-0 rounded-3">
+                <i class="bi bi-info-circle me-3 fs-4"></i>
+                <div>
+                    <strong>No borrowed items</strong>
+                    <p class="mb-0 small mt-1">You don't have any equipment currently borrowed.</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Overdue Items -->
+    <div class="mb-4">
+        <h5 class="fw-bold text-danger ">
+            <i class="bi bi-exclamation-triangle "></i>Overdue Items
+        </h5>
+
+        @if (overdueItems.Any())
+        {
+            <div class="alert alert-danger d-flex align-items-center shadow-sm border-0 rounded-3 mb-3">
+                <i class="bi bi-exclamation-octagon me-3 fs-4"></i>
+                <div>
+                    <strong>Action Required!</strong>
+                    <p class="mb-0 small mt-1">You have overdue items. Return them immediately.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-danger" style="background:#fde4e4;">
+                        <tr class="fw-semibold text-danger">
+                            <th>Name</th>
+                            <th>Expected Return</th>
+                            <th>Days Overdue</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var item in overdueItems)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.Name</td>
+                                <td>@item.ExpectedReturnDate.ToString("MMM d, yyyy")</td>
+                                <td><span class="badge bg-danger">@item.DaysOverdue days</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-success d-flex align-items-center shadow-sm border-0 rounded-3">
+                <i class="bi bi-check-circle me-3 fs-4"></i>
+                <div>
+                    <strong>All clear!</strong>
+                    <p class="mb-0 small mt-1">You have no overdue items. Keep it up!</p>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+<style>
+    .borrow-action-card {
+        transition: 0.3s ease;
+        border-radius: 14px;
+        cursor: pointer;
+    }
+
+    .borrow-action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(23, 59, 100, 0.35);
+    }
+</style>

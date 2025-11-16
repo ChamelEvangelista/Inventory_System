@@ -1,0 +1,354 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Admin Dashboard";
+    ViewData["ActivePage"] = "Dashboard";
+}
+
+<!-- Welcome Banner -->
+<div class="mb-4 p-4 rounded-3" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); color: white;">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-2 fw-bold">
+                <i class="fas fa-tachometer-alt me-3"></i>Dashboard Overview
+            </h2>
+            <p class="mb-0 opacity-75">
+                <i class="fas fa-calendar-day me-2"></i>
+                Welcome back! Here's what's happening with your inventory system today.
+            </p>
+        </div>
+        <div class="text-end">
+            <div class="fs-5 fw-bold" id="currentDate"></div>
+            <small class="opacity-75" id="currentTime"></small>
+        </div>
+    </div>
+</div>
+
+<!-- 🟦 1. SUMMARY CARDS (Top Row) - 5 Cards Only -->
+<div class="row g-4 mb-4">
+    <!-- Pending Users Card -->
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--warning);">
+            <div class="card-body text-center py-3">
+                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FFE89A 0%, var(--naples-yellow) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="fas fa-users fa-lg" style="color: var(--yale-blue);"></i>
+                </div>
+                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.PendingUsers</h3>
+                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Pending Users</p>
+                <small class="text-muted x-small">
+                    <i class="fas fa-clock me-1"></i>Awaiting approval
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Items Card -->
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--yale-blue);">
+            <div class="card-body text-center py-3">
+                <div class="card-icon mb-2" style="background: linear-gradient(135deg, var(--powder-blue) 0%, var(--medium-blue) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="fas fa-boxes fa-lg text-white"></i>
+                </div>
+                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.TotalEquipment</h3>
+                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Total Items</p>
+                <small class="text-muted x-small">
+                    <i class="fas fa-tags me-1"></i>All inventory
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrowed Items Card -->
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--info);">
+            <div class="card-body text-center py-3">
+                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #A3D8F7 0%, var(--info) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="fas fa-hand-holding fa-lg text-white"></i>
+                </div>
+                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.BorrowedItems</h3>
+                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Borrowed Items</p>
+                <small class="text-muted x-small">
+                    <i class="fas fa-arrow-circle-right me-1"></i>Currently in use
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Returned Items Card -->
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--success);">
+            <div class="card-body text-center py-3">
+                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #7DCD9E 0%, var(--success) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="fas fa-undo-alt fa-lg text-white"></i>
+                </div>
+                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.ReturnedItems</h3>
+                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Returned Items</p>
+                <small class="text-muted x-small">
+                    <i class="fas fa-check-circle me-1"></i>Completed
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Out of Stock Items -->
+    <div class="col-xl col-lg-4 col-md-6">
+        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--danger);">
+            <div class="card-body text-center py-3">
+                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FF9999 0%, var(--danger) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="fas fa-exclamation-triangle fa-lg text-white"></i>
+                </div>
+                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.OutOfStockItems</h3>
+                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Out of Stock</p>
+                <small class="text-muted x-small">
+                    <i class="fas fa-times-circle me-1"></i>Need restock
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🟨 2. EQUIPMENT DISTRIBUTION CHART (Full Width) -->
+<div class="row g-4 mb-4">
+    <!-- Item Distribution Chart by Type -->
+    <div class="col-12">
+        <div class="card shadow-custom">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border-bottom: 3px solid var(--naples-yellow);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-chart-pie me-2"></i>Equipment Distribution by Type
+                </h5>
+            </div>
+            <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 400px;">
+                <div style="position: relative; height: 350px; width: 100%; max-width: 500px;">
+                    <canvas id="equipmentDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🟩 3. RECENT ACTIVITY FEED & 🟥 4. ALERTS -->
+<div class="row g-4">
+    <!-- Recent Activity Feed -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow-custom">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border-bottom: 3px solid var(--naples-yellow);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-history me-2"></i>Recent Activity
+                </h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                @if (ViewBag.RecentBorrowRecords != null && ViewBag.RecentBorrowRecords.Count > 0)
+                {
+                    @foreach (var record in ViewBag.RecentBorrowRecords)
+                    {
+                        var borderColor = record.Status == "Borrowed" ? "var(--info)" : "var(--success)";
+                        var iconClass = record.Status == "Borrowed" ? "fa-hand-holding" : "fa-undo-alt";
+                        var iconColor = record.Status == "Borrowed" ? "text-info" : "text-success";
+                        var timeAgo = (DateTime.Now - record.BorrowDate).Days == 0 ? "Today" : $"{(DateTime.Now - record.BorrowDate).Days} days ago";
+
+                        <div class="activity-item mb-3 p-3 rounded" style="background-color: var(--alice-blue); border-left: 4px solid @borderColor;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas @iconClass @iconColor me-2"></i>
+                                <strong class="me-2">@(record.Status == "Borrowed" ? "Equipment Borrowed" : "Equipment Returned")</strong>
+                                <small class="text-muted ms-auto">@timeAgo</small>
+                            </div>
+                            <p class="mb-1 small">@record.UserName @(record.Status == "Borrowed" ? "borrowed" : "returned") <strong>@record.EquipmentName</strong></p>
+                            @if (record.Status == "Borrowed")
+                            {
+                                <small class="text-muted">Purpose: @record.Purpose</small>
+                            }
+                            else
+                            {
+                                var isOnTime = record.ReturnDate <= record.ExpectedReturnDate;
+                                <small class="@(isOnTime ? "text-success" : "text-danger")">
+                                    @(isOnTime ? "✓ On time" : "⚠ Late return")
+                                </small>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                        <p>No recent activity to display</p>
+                    </div>
+                }
+
+                @* Recent User Registrations *@
+                @if (ViewBag.RecentUsers != null && ViewBag.RecentUsers.Count > 0)
+                {
+                    @foreach (var user in ViewBag.RecentUsers)
+                    {
+                        <div class="activity-item mb-3 p-3 rounded" style="background-color: var(--alice-blue); border-left: 4px solid var(--warning);">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-user-plus text-warning me-2"></i>
+                                <strong class="me-2">New User Registration</strong>
+                                <small class="text-muted ms-auto">Recently</small>
+                            </div>
+                            <p class="mb-1 small"><strong>@user.FullName</strong> registered as @user.UserType</p>
+                            <small class="@(user.Status == "Pending" ? "text-warning" : user.Status == "Active" ? "text-success" : "text-danger")">
+                                @(user.Status == "Pending" ? "⏳ Pending approval" : user.Status == "Active" ? "✓ Approved" : "✗ Rejected")
+                            </small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts & Notifications -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow-custom">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--danger) 0%, #C0392B 100%); border-bottom: 3px solid var(--naples-yellow);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-bell me-2"></i>Alerts & Notifications
+                </h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                @* Low Stock Alerts *@
+                @if (ViewBag.LowStockItems != null && ViewBag.LowStockItems.Count > 0)
+                {
+                    @foreach (var item in ViewBag.LowStockItems)
+                    {
+                        <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+                            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Low Stock Warning</h6>
+                                <p class="mb-0 small"><strong>@item.Name</strong> - Only @item.Quantity units remaining</p>
+                            </div>
+                        </div>
+                    }
+                }
+
+                @* Overdue Items Alerts *@
+                @if (ViewBag.OverdueItems != null && ViewBag.OverdueItems.Count > 0)
+                {
+                    @foreach (var overdue in ViewBag.OverdueItems)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                            <i class="fas fa-clock fa-2x me-3"></i>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Overdue Return</h6>
+                                <p class="mb-0 small"><strong>@overdue.EquipmentName</strong> borrowed by @overdue.UserName - @overdue.DaysOverdue days overdue</p>
+                            </div>
+                        </div>
+                    }
+                }
+
+                @* Pending Approval Alert *@
+                @if (ViewBag.PendingUsers > 0)
+                {
+                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                        <i class="fas fa-user-clock fa-2x me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Pending User Approvals</h6>
+                            <p class="mb-0 small"><strong>@ViewBag.PendingUsers user(s)</strong> waiting for account approval</p>
+                        </div>
+                    </div>
+                }
+
+                @* Out of Stock Alert *@
+                @if (ViewBag.OutOfStockItems > 0)
+                {
+                    <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                        <i class="fas fa-times-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Out of Stock</h6>
+                            <p class="mb-0 small"><strong>@ViewBag.OutOfStockItems item(s)</strong> are currently unavailable</p>
+                        </div>
+                    </div>
+                }
+
+                @* System Status - All Good (show if no critical alerts) *@
+                @if ((ViewBag.LowStockItems == null || ViewBag.LowStockItems.Count == 0) &&
+                                (ViewBag.OverdueItems == null || ViewBag.OverdueItems.Count == 0) &&
+                                ViewBag.PendingUsers == 0 &&
+                                ViewBag.OutOfStockItems == 0)
+                {
+                    <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">System Status: Operational</h6>
+                            <p class="mb-0 small">All systems running smoothly - no alerts at this time</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <script>
+        // Update Date and Time
+        document.addEventListener('DOMContentLoaded', function () {
+            function updateDateTime() {
+                const now = new Date();
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', dateOptions);
+                document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', timeOptions);
+            }
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            // Equipment Distribution Pie Chart by Type
+            const equipmentDistCtx = document.getElementById('equipmentDistributionChart').getContext('2d');
+
+            // Get data from ViewBag (passed from controller)
+            const equipmentTypes = @Html.Raw(Json.Serialize(ViewBag.EquipmentTypeLabels ?? new List<string>()));
+            const equipmentCounts = @Html.Raw(Json.Serialize(ViewBag.EquipmentTypeCounts ?? new List<int>()));
+
+            new Chart(equipmentDistCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: equipmentTypes,
+                    datasets: [{
+                        data: equipmentCounts,
+                        backgroundColor: [
+                            '#173B64', // Yale Blue
+                            '#A3C4EB', // Powder Blue
+                            '#FFDE70', // Naples Yellow
+                            '#2D9B6B', // Success Green
+                            '#3498DB', // Info Blue
+                            '#F39C12', // Warning Orange
+                            '#E74C3C'  // Danger Red
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed + ' items';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

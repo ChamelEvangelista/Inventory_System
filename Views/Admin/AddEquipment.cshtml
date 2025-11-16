@@ -1,0 +1,76 @@
+﻿@model Inventory_System.Models.Equipment
+@{
+    ViewData["Title"] = "Add Equipment";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["ActivePage"] = "ManageEquipment";
+}
+
+<div class="container mt-4">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; border: 2px solid var(--powder-blue);">
+            <div class="card-header text-white py-3"
+                 style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%);">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Item</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-action="AddEquipment" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label fw-bold"><i class="fas fa-tag me-2"></i>Name</label>
+                        <input asp-for="Name" class="form-control" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-bold"><i class="fas fa-align-left me-2"></i>Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Category" class="form-label fw-bold"><i class="fas fa-list me-2"></i>Category</label>
+                        <select asp-for="Category" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                            @foreach (var cat in ViewBag.Categories as string[])
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label fw-bold"><i class="fas fa-cube me-2"></i>Type</label>
+                        <select asp-for="Type" class="form-select" required>
+                            <option value="">-- Select Type --</option>
+                            @foreach (var type in ViewBag.Types as string[])
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Label" class="form-label fw-bold"><i class="fas fa-tag me-2"></i>Label</label>
+                        <select asp-for="Label" class="form-select" required>
+                            <option value="">-- Select Label --</option>
+                            @foreach (var lbl in ViewBag.Labels as string[])
+                            {
+                                <option value="@lbl">@lbl</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Quantity" class="form-label fw-bold"><i class="fas fa-boxes me-2"></i>Quantity</label>
+                        <input asp-for="Quantity" type="number" min="1" class="form-control" required />
+                    </div>
+
+                    <div class="text-end">
+                        <a asp-action="ManageEquipment" class="btn btn-secondary me-2"><i class="fas fa-times me-1"></i>Cancel</a>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-check-circle me-1"></i>Add Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

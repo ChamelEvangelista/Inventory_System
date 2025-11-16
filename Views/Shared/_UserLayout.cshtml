@@ -1,0 +1,241 @@
+﻿@*
+===========================================
+Updated User Layout (No Gradient + Fixed Sidebar)
+===========================================
+*@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - User Portal</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="~/css/site-user.css" />
+
+    <style>
+        /* ============================
+           SIDEBAR FIXES & IMPROVEMENTS
+           ============================ */
+
+        .sidebar {
+            width: 260px;
+            background: #0F2947 !important; /* Solid Navy (no gradient) */
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0; /* Sidebar stays fixed, no scrolling */
+            overflow: hidden;
+        }
+
+            .sidebar h1 {
+                font-size: 1.8rem;
+                letter-spacing: 1px;
+                margin-bottom: 0.3rem;
+            }
+
+            .sidebar h5 {
+                font-size: 0.9rem;
+                opacity: 0.85;
+            }
+
+            .sidebar .nav-link {
+                color: #cfd8e3;
+                padding: 10px 12px;
+                border-radius: 8px;
+                font-weight: 500;
+                transition: 0.25s ease;
+            }
+
+                .sidebar .nav-link:hover {
+                    background: rgba(255, 255, 255, 0.12);
+                    color: #ffffff;
+                }
+
+                .sidebar .nav-link.active {
+                    background: #1f4068 !important;
+                    color: #ffffff !important;
+                    font-weight: 600;
+                }
+
+            .sidebar .text-danger {
+                color: #ff6b6b !important;
+            }
+
+        hr {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* ============================
+                MAIN CONTENT AREA
+           ============================ */
+
+        .content {
+            margin-left: 260px; /* Push content aside */
+            overflow-y: auto; /* Page scrolls, sidebar does not */
+            background: #f4f7fb;
+            min-height: 100vh;
+        }
+
+        /* Mobile Responsive Sidebar */
+        @@media (max-width: 992px) {
+            .sidebar
+
+        {
+            position: absolute;
+            transform: translateX(-260px);
+            transition: 0.3s ease;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+
+        .content {
+            margin-left: 0 !important;
+        }
+
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #0F2947;
+            color: #fff;
+        }
+
+            .toggle-btn:hover {
+                background: #1f4068;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="d-flex" style="min-height: 100vh;">
+
+        <!-- ============================
+             FIXED SIDEBAR
+             ============================ -->
+        <div class="sidebar d-flex flex-column flex-shrink-0 p-3">
+            <h1 class="text-center fw-bolder mt-2">BorrowIT</h1>
+            <h5 class="text-center mb-3">Item and Equipment Borrowing System</h5>
+
+            <hr />
+
+            <ul class="nav nav-pills flex-column mb-auto">
+
+                <li class="nav-item mb-2">
+                    <a href="@Url.Action("UserDashboard", "User")"
+                       class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "UserDashboard" ? "active" : "")">
+                        <i class="bi bi-house-door me-2"></i> Dashboard
+                    </a>
+                </li>
+
+                <li class="nav-item mb-2">
+                    <a href="@Url.Action("BorrowEquipment", "User")"
+                       class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BorrowEquipment" ? "active" : "")">
+                        <i class="bi bi-laptop me-2"></i> Borrow Equipment
+                    </a>
+                </li>
+
+                <li class="nav-item mb-2">
+                    <a href="@Url.Action("ReturnEquipment", "User")"
+                       class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ReturnEquipment" ? "active" : "")">
+                        <i class="bi bi-arrow-return-left me-2"></i> Return Equipment
+                    </a>
+                </li>
+
+                <li class="nav-item mb-2">
+                    <a href="@Url.Action("BorrowHistory", "User")"
+                       class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BorrowHistory" ? "active" : "")">
+                        <i class="bi bi-clock-history me-2"></i> View History
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="@Url.Action("UserSettings", "User")"
+                       class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "UserSettings" ? "active" : "")">
+                        <i class="bi bi-gear me-2"></i> Settings
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="@Url.Action("Logout", "Account")" class="nav-link sidebar-link text-danger">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- ============================
+             MAIN CONTENT
+             ============================ -->
+        <div class="content flex-grow-1 p-4 position-relative">
+
+            <!-- Mobile Sidebar Toggle -->
+            <div class="d-lg-none mb-3">
+                <span class="toggle-btn"
+                      onclick="document.querySelector('.sidebar').classList.toggle('show')">
+                    <i class="bi bi-list fs-3"></i>
+                </span>
+            </div>
+
+            <!-- Toasts -->
+            <div aria-live="polite" aria-atomic="true">
+                <div id="toastContainer"
+                     class="toast-container position-fixed top-0 end-0 p-3"
+                     style="z-index: 1050;">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="toast text-bg-success border-0 show mb-2">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">
+                                    <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="toast text-bg-danger border-0 show mb-2">
+                            <div class="d-flex">
+                                <div class="toast-body fw-semibold">
+                                    <i class="bi bi-exclamation-octagon me-2"></i>@TempData["Error"]
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @RenderBody()
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /* Auto hide toasts */
+        document.addEventListener("DOMContentLoaded", () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(t => new bootstrap.Toast(t, { delay: 4000 }).show());
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+
+</body>
+</html>

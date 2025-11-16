@@ -1,0 +1,127 @@
+﻿@model Inventory_System.Models.User
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["ActivePage"] = "ManageUsers";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/Admin/ManageUsers" style="color: var(--yale-blue); text-decoration: none;">
+                                <i class="fas fa-users me-1"></i>Manage Users
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Edit User</li>
+                    </ol>
+                </nav>
+                <h3 class="fw-bold" style="color: var(--yale-blue);">
+                    <i class="fas fa-user-edit me-2"></i>Edit User Details
+                </h3>
+                <p class="text-muted">Update user information and permissions</p>
+            </div>
+
+            <!-- Edit Form Card -->
+            <div class="card border-0 shadow-sm" style="border-radius: 15px; border: 2px solid var(--powder-blue) !important;">
+                <div class="card-header text-white py-3" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%); border-bottom: 3px solid var(--naples-yellow); border-radius: 15px 15px 0 0;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-id-card me-2"></i>User Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="EditUser" method="post">
+                        <input type="hidden" asp-for="UserID" />
+
+                        <!-- User ID Display (Read-only) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-hashtag me-2" style="color: var(--powder-blue);"></i>User ID
+                            </label>
+                            <input type="text" value="@Model.UserID" class="form-control" disabled style="background-color: var(--alice-blue);" />
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>System-generated identifier
+                            </small>
+                        </div>
+
+                        <!-- Full Name -->
+                        <div class="mb-4">
+                            <label asp-for="FullName" class="form-label fw-bold">
+                                <i class="fas fa-user me-2" style="color: var(--powder-blue);"></i>Full Name
+                            </label>
+                            <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label asp-for="Username" class="form-label fw-bold">
+                                <i class="fas fa-at me-2" style="color: var(--powder-blue);"></i>Username
+                            </label>
+                            <input asp-for="Username" class="form-control" placeholder="Enter username" />
+                        </div>
+
+                        <!-- Role Selection -->
+                        <div class="mb-4">
+                            <label asp-for="Role" class="form-label fw-bold">
+                                <i class="fas fa-shield-alt me-2" style="color: var(--powder-blue);"></i>Role
+                            </label>
+                            <select asp-for="Role" class="form-select">
+                                <option value="User">User</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                            <small class="text-muted">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Admin role grants full system access
+                            </small>
+                        </div>
+
+                        <!-- User Type Selection -->
+                        <div class="mb-4">
+                            <label asp-for="UserType" class="form-label fw-bold">
+                                <i class="fas fa-graduation-cap me-2" style="color: var(--powder-blue);"></i>User Type
+                            </label>
+                            <select asp-for="UserType" class="form-select">
+                                <option value="Student">Student (1 item limit)</option>
+                                <option value="Instructor">Instructor (3 items limit)</option>
+                            </select>
+                        </div>
+
+                        <!-- Status Selection -->
+                        <div class="mb-4">
+                            <label asp-for="Status" class="form-label fw-bold">
+                                <i class="fas fa-toggle-on me-2" style="color: var(--powder-blue);"></i>Account Status
+                            </label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Pending">Pending - Awaiting approval</option>
+                                <option value="Active">Active - Can access system</option>
+                                <option value="Rejected">Rejected - Access denied</option>
+                            </select>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Only active users can log in
+                            </small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-4" style="border-top: 2px solid var(--light-sky);">
+                            <a href="@Url.Action("ManageUsers", "Admin")" class="btn btn-secondary px-4">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Users
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom px-4">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Warning Note -->
+            <div class="alert mt-3 p-3" style="background-color: var(--soft-cream); border-left: 4px solid var(--naples-yellow);">
+                <i class="fas fa-exclamation-circle me-2" style="color: var(--warning);"></i>
+                <strong>Important:</strong> Changes to user roles and status take effect immediately. Make sure you're certain before saving.
+            </div>
+        </div>
+    </div>
+</div>

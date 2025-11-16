@@ -1,0 +1,821 @@
+﻿/* ============================================
+   BorrowIT: Campus Equipment Inventory System
+   Custom Color Theme Based on Palette
+   ============================================ */
+
+:root {
+    /* Core Color Palette */
+    --alice-blue: #F6FAFF;
+    --naples-yellow: #FFDE70;
+    --powder-blue: #A3C4EB;
+    --yale-blue: #173B64;
+    /* Extended Palette for UI needs */
+    --deep-navy: #0D2A47;
+    --medium-blue: #2563A8;
+    --light-sky: #D4E4F7;
+    --soft-cream: #FFF9E6;
+    /* Semantic Colors */
+    --primary: #173B64;
+    --secondary: #A3C4EB;
+    --accent: #FFDE70;
+    --background: #F6FAFF;
+    --card-bg: #FFFFFF;
+    --text-dark: #0D2A47;
+    --text-light: #5A6C7D;
+    /* Status Colors */
+    --success: #2D9B6B;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --info: #3498DB;
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+
+body {
+    background-color: var(--background);
+    color: var(--text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* ============================================
+   LOGIN & REGISTER PAGES (shared styles)
+   ============================================ */
+
+.vh-100 {
+    background: linear-gradient(135deg, var(--alice-blue) 0%, var(--light-sky) 100%);
+    position: relative;
+}
+
+    .vh-100::before,
+    .vh-100::after {
+        content: '';
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .vh-100::before {
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, var(--powder-blue) 0%, transparent 70%);
+        opacity: 0.3;
+    }
+
+    .vh-100::after {
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, var(--naples-yellow) 0%, transparent 70%);
+        opacity: 0.2;
+    }
+
+/* Card used across login/register pages */
+.custom-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 40px rgba(23, 59, 100, 0.15);
+    border: 1px solid rgba(163, 196, 235, 0.25);
+    position: relative;
+    z-index: 3; /* ensure card stays above image/overlays */
+    backdrop-filter: blur(6px);
+    max-width: 480px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+    .custom-card h3 {
+        color: var(--yale-blue);
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        font-size: 1.6rem;
+    }
+
+/* Form Styling */
+.form-label {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.form-control, .form-select {
+    border: 2px solid var(--powder-blue);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    transition: all 0.25s ease;
+    background-color: var(--alice-blue);
+    box-shadow: none;
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--yale-blue);
+        box-shadow: 0 0 0 0.18rem rgba(23,59,100,0.12);
+        background-color: #ffffff;
+    }
+
+/* Password Toggle */
+.password-input-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--powder-blue);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+    .password-toggle:hover {
+        color: var(--yale-blue);
+    }
+
+/* Primary Button */
+.btn-primary-custom {
+    background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(23, 59, 100, 0.25);
+}
+
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(23, 59, 100, 0.35);
+        background: linear-gradient(135deg, var(--medium-blue) 0%, var(--yale-blue) 100%);
+    }
+
+/* Links in card */
+.custom-card a {
+    color: var(--yale-blue);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+    .custom-card a:hover {
+        color: var(--medium-blue);
+        text-decoration: underline;
+    }
+
+/* ============================================
+   ADMIN LAYOUT - SIDEBAR
+   ============================================ */
+
+#wrapper {
+    display: block;
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+}
+
+#sidebar-wrapper {
+    min-width: 280px;
+    max-width: 280px;
+    background: linear-gradient(180deg, var(--yale-blue) 0%, var(--deep-navy) 100%);
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1000;
+}
+
+.sidebar-heading {
+    background: rgba(255, 222, 112, 0.15);
+    border-bottom: 2px solid var(--naples-yellow);
+}
+
+    .sidebar-heading h4 {
+        color: var(--naples-yellow);
+        font-size: 1.5rem;
+        margin: 0;
+        padding: 0.5rem 0;
+    }
+
+/* Sidebar Menu Items */
+.list-group-item-action {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.90);
+    border: none;
+    padding: 1rem 1.5rem;
+    transition: all 0.25s ease;
+    font-weight: 500;
+    border-left: 4px solid transparent;
+}
+
+    .list-group-item-action:hover {
+        background: rgba(255, 222, 112, 0.08);
+        color: white;
+        border-left-color: var(--naples-yellow);
+        padding-left: 1.75rem;
+    }
+
+/* ============================================
+   FIXED SIDEBAR & SCROLLABLE CONTENT
+   ============================================ */
+
+#page-content-wrapper {
+    margin-left: 280px;
+    width: calc(100% - 280px);
+    min-height: 100vh;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+/* Hide the hamburger toggle since sidebar is fixed (desktop) */
+.btn-accent[onclick*="toggleMenu"],
+button[onclick*="toggleMenu"],
+#menu-toggle {
+    display: none !important;
+}
+
+/* Keep wrapper toggled state harmless for fixed layout */
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+/* ============================================
+   LOGIN & REGISTER PAGES - SPLIT LAYOUT FIXES
+   ============================================ */
+
+/* When showing login/register pages, hide the sidebar and make content full width.
+   Use this class on <body> for login/register pages: body.login-register-body */
+body.login-register-body {
+    overflow: hidden;
+    min-height: 100vh;
+}
+
+    /* Hide the admin sidebar while on login/register pages so the split layout uses full viewport */
+    body.login-register-body #sidebar-wrapper {
+        display: none !important;
+    }
+
+    /* Make page container full width when on login/register pages */
+    body.login-register-body #page-content-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+/* The top-level login container that holds both image & form sides */
+.login-container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    align-items: stretch;
+    justify-content: stretch;
+}
+
+/* Left image side */
+.login-image-side {
+    flex: 1 1 50%;
+    position: relative;
+    overflow: hidden;
+    min-width: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--alice-blue);
+    z-index: 1;
+}
+
+/* Image itself */
+.login-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.8);
+    transform-origin: center;
+    transition: transform 0.6s ease;
+}
+
+/* Decorative overlay to ensure readability of text on top */
+.login-image-side::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(23,59,100,0.35) 0%, rgba(163,196,235,0.2) 100%);
+    pointer-events: none;
+}
+
+/* Right side with login form - centers the card */
+.login-form-side {
+    flex: 1 1 50%;
+    background: linear-gradient(135deg, var(--alice-blue) 0%, var(--light-sky) 100%);
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    box-sizing: border-box;
+}
+
+    /* ensure the custom-card inside login-form is centered and scrollable if small screen */
+    .login-form-side .custom-card {
+        margin: 0 auto;
+        max-height: calc(100vh - 4rem);
+        overflow-y: auto;
+    }
+
+/* subtle hover effect for image */
+.login-image-side:hover .login-image {
+    transform: scale(1.04);
+}
+
+/* Fade transition for page changes */
+.fade-transition {
+    animation: fadeIn 0.45s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ensure no scroll on body when showing login/register (card scrolls instead) */
+body.login-register-body {
+    overscroll-behavior: none;
+}
+
+/* Mobile responsive adjustments for split layout */
+@media (max-width: 992px) {
+    .login-container {
+        flex-direction: column;
+    }
+
+    .login-image-side {
+        flex: 0 0 40%;
+        min-height: 180px;
+    }
+
+    .login-form-side {
+        flex: 1 1 60%;
+        padding: 2rem;
+    }
+
+    .custom-card {
+        max-width: 420px;
+        padding: 1.5rem 1.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    /* On very small screens hide image side and let form occupy full viewport */
+    .login-image-side {
+        display: none !important;
+    }
+
+    .login-form-side {
+        flex: 1 1 100%;
+        padding: 1.25rem;
+    }
+
+    .custom-card {
+        width: 100%;
+        max-width: 520px;
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+
+    body.login-register-body {
+        overflow-y: auto;
+    }
+}
+
+/* ============================================
+   ADMIN LAYOUT - NAVBAR
+   ============================================ */
+
+.gradient-navbar {
+    background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%);
+    border-bottom: 3px solid var(--naples-yellow);
+    padding: 1rem 0;
+}
+
+.btn-accent {
+    background-color: var(--naples-yellow);
+    color: var(--yale-blue);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+    .btn-accent:hover {
+        background-color: #FFE89A;
+        transform: scale(1.03);
+    }
+
+/* ============================================
+   ADMIN DASHBOARD CARDS
+   ============================================ */
+
+.dashboard-card {
+    border-radius: 15px;
+    border: 2px solid var(--powder-blue);
+    transition: all 0.25s ease;
+    background: white;
+}
+
+    .dashboard-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(23, 59, 100, 0.18);
+        border-color: var(--yale-blue);
+    }
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-icon i {
+    font-size: 2.5rem;
+}
+
+.dashboard-card h4 {
+    color: var(--yale-blue);
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+
+.dashboard-card p {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+/* ============================================
+   TABLE STYLING (Manage Users & Equipment)
+   ============================================ */
+
+.card {
+    border-radius: 15px;
+    border: none;
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%);
+    border-bottom: 3px solid var(--naples-yellow);
+}
+
+.table thead {
+    background: var(--yale-blue);
+}
+
+    .table thead th {
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid var(--light-sky);
+}
+
+    .table tbody tr:hover {
+        background-color: var(--alice-blue);
+    }
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 1rem;
+    color: var(--text-dark);
+}
+
+/* Badge styling */
+.badge {
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+    .badge.bg-success {
+        background-color: var(--success) !important;
+    }
+
+    .badge.bg-warning {
+        background-color: var(--warning) !important;
+    }
+
+    .badge.bg-danger {
+        background-color: var(--danger) !important;
+    }
+
+/* Button styling in tables */
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+/* ============================================
+   USER LIST TABLE - Grid Layout Styling
+   ============================================ */
+
+.user-list-table {
+    width: 100%;
+    background: white;
+}
+
+/* Table Header Row */
+.user-table-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 140px 150px 280px;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: var(--yale-blue);
+    border-radius: 10px 10px 0 0;
+    align-items: center;
+}
+
+    .user-table-header .header-cell {
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+/* Table Body Row */
+.user-table-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 140px 150px 280px;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--light-sky);
+    transition: background-color 0.2s ease;
+    align-items: center;
+}
+
+    .user-table-row:hover {
+        background-color: var(--alice-blue);
+    }
+
+    .user-table-row .cell {
+        display: flex;
+        align-items: center;
+    }
+
+    /* ID Cell */
+    .user-table-row .cell-id {
+        font-weight: 700;
+        color: var(--yale-blue);
+        font-size: 0.95rem;
+    }
+
+    /* Name Cell with Avatar */
+    .user-table-row .cell-name {
+        gap: 1rem;
+    }
+
+        .user-table-row .cell-name .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--powder-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .user-table-row .cell-name .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+            .user-table-row .cell-name .user-info .full-name {
+                font-weight: 600;
+                color: var(--text-dark);
+                font-size: 0.95rem;
+            }
+
+            .user-table-row .cell-name .user-info .username {
+                color: var(--text-light);
+                font-size: 0.85rem;
+            }
+
+    /* Role Cell */
+    .user-table-row .cell-role .badge {
+        width: 100%;
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* User Type Cell */
+    .user-table-row .cell-usertype .badge {
+        width: 100%;
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Status Cell */
+    .user-table-row .cell-status .badge {
+        width: 100%;
+        text-align: center;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Actions Cell */
+    .user-table-row .cell-actions {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+/* Responsive adjustments for user table */
+@media (max-width: 1400px) {
+    .user-table-header,
+    .user-table-row {
+        grid-template-columns: 70px 1fr 110px 130px 140px 260px;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .user-table-header,
+    .user-table-row {
+        grid-template-columns: 60px 1fr 100px 120px 130px 240px;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .user-table-header .header-cell {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 992px) {
+    /* Stack layout for tablets and smaller */
+    .user-table-header {
+        display: none;
+    }
+
+    .user-table-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--light-sky);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+        .user-table-row .cell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .user-table-row .cell::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--yale-blue);
+                text-transform: uppercase;
+                font-size: 0.8rem;
+            }
+
+        .user-table-row .cell-name {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+            .user-table-row .cell-name::before {
+                display: none;
+            }
+
+        .user-table-row .cell-actions {
+            justify-content: flex-end;
+        }
+}
+
+/* ============================================
+   FORM PAGES (Edit User, Edit Equipment, Add Equipment)
+   ============================================ */
+
+.container .card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(23, 59, 100, 0.12);
+    border: 2px solid var(--powder-blue);
+}
+
+.container h3 {
+    color: var(--yale-blue);
+    font-weight: 700;
+}
+
+.btn-secondary {
+    background-color: var(--powder-blue);
+    border: none;
+    color: var(--yale-blue);
+    font-weight: 600;
+}
+
+    .btn-secondary:hover {
+        background-color: var(--medium-blue);
+        color: white;
+    }
+
+/* ============================================
+   RESPONSIVE - Sidebar behavior
+   ============================================ */
+
+@media (max-width: 768px) {
+    .btn-accent[onclick*="toggleMenu"],
+    button[onclick*="toggleMenu"],
+    #menu-toggle {
+        display: inline-block !important;
+    }
+
+    #sidebar-wrapper {
+        margin-left: -280px;
+        position: fixed;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Small tweaks for consistent border radius on small controls */
+.form-control-sm, .form-select-sm, .btn-sm, .custom-card {
+    border-radius: 10px !important;
+}
+
+/* Custom scrollbars for card bodies */
+.card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.card-body::-webkit-scrollbar-track {
+    background: var(--alice-blue);
+    border-radius: 3px;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+    background: var(--powder-blue);
+    border-radius: 3px;
+}
+
+    .card-body::-webkit-scrollbar-thumb:hover {
+        background: var(--medium-blue);
+    }

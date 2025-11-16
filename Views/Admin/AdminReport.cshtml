@@ -1,0 +1,218 @@
+﻿@model Inventory_System.Models.ReportViewModel
+@{
+    ViewData["Title"] = "Admin Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- ========================= -->
+    <!-- PAGE HEADER -->
+    <!-- ========================= -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">📊 Reports and Analytics</h2>
+        <div>
+            <a asp-controller="Admin" asp-action="ExportToExcel" class="btn btn-outline-success me-2">
+                <i class="bi bi-file-earmark-excel"></i> Export to Excel
+            </a>
+            <a asp-controller="Admin" asp-action="ExportToPDF" class="btn btn-outline-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SUMMARY CARDS -->
+    <!-- ========================= -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Total Equipment</h6>
+                    <h4 class="fw-bold text-primary">@Model.TotalEquipment</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Available</h6>
+                    <h4 class="fw-bold text-success">@Model.AvailableEquipment</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Borrowed</h6>
+                    <h4 class="fw-bold text-warning">@Model.BorrowedEquipment</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Overdue</h6>
+                    <h4 class="fw-bold text-danger">@Model.OverdueEquipment</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Active Users</h6>
+                    <h4 class="fw-bold text-primary">@Model.ActiveUsers</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-6">
+            <div class="card text-center shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h6>Pending Accounts</h6>
+                    <h4 class="fw-bold text-secondary">@Model.PendingUsers</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- CHARTS SECTION -->
+    <!-- ========================= -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white fw-bold">Borrowed Items by User Type</div>
+                <div class="card-body">
+                    <canvas id="borrowByUserTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white fw-bold">Top 5 Most Borrowed Equipment</div>
+                <div class="card-body">
+                    <canvas id="topBorrowedChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- OVERDUE RECORDS TABLE -->
+    <!-- ========================= -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-danger text-white fw-bold">
+            Overdue Borrowed Items
+        </div>
+        <div class="card-body">
+            @if (Model.OverdueRecords.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Borrow ID</th>
+                                <th>Borrower</th>
+                                <th>Equipment</th>
+                                <th>Borrow Date</th>
+                                <th>Expected Return</th>
+                                <th>Days Overdue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in Model.OverdueRecords)
+                            {
+                                <tr>
+                                    <td>@record.BorrowID</td>
+                                    <td>@record.Borrower</td>
+                                    <td>@record.Equipment</td>
+                                    <td>@record.BorrowDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@record.ExpectedReturn.ToString("MMM dd, yyyy")</td>
+                                    <td class="text-danger fw-bold">@record.DaysOverdue</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">No overdue records at the moment.</p>
+            }
+        </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- BORROWING ACTIVITY TREND -->
+    <!-- ========================= -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-header bg-primary text-white fw-bold">
+            Monthly Borrowing Activity
+        </div>
+        <div class="card-body">
+            <canvas id="borrowActivityChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- ========================= -->
+<!-- CHART.JS SCRIPTS -->
+<!-- ========================= -->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Borrowed by User Type
+        const userTypeLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowedByUserType.Keys));
+        const userTypeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowedByUserType.Values));
+
+        new Chart(document.getElementById('borrowByUserTypeChart'), {
+            type: 'pie',
+            data: {
+                labels: userTypeLabels,
+                datasets: [{
+                    data: userTypeData,
+                    backgroundColor: ['#007bff', '#ffc107', '#28a745']
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Top Borrowed Equipment
+        const topLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopBorrowedEquipment.Keys));
+        const topData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopBorrowedEquipment.Values));
+
+        new Chart(document.getElementById('topBorrowedChart'), {
+            type: 'bar',
+            data: {
+                labels: topLabels,
+                datasets: [{
+                    label: 'Times Borrowed',
+                    data: topData,
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Borrowing Activity Trend
+        const activityLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowActivity.Keys));
+        const activityData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowActivity.Values));
+
+        new Chart(document.getElementById('borrowActivityChart'), {
+            type: 'line',
+            data: {
+                labels: activityLabels,
+                datasets: [{
+                    label: 'Borrow Count',
+                    data: activityData,
+                    borderColor: '#28a745',
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+}

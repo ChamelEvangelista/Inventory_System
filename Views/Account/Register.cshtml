@@ -1,0 +1,119 @@
+﻿@model Inventory_System.Models.User
+@{
+    ViewData["Title"] = "Register";
+    Layout = null; // Remove layout to prevent scroll
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BorrowIT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/site-custom.css" asp-append-version="true" />
+</head>
+<body class="login-register-body">
+    <div class="login-container">
+        <!-- Left Side: Image -->
+        <div class="login-image-side">
+            <img src="~/images/Inventory_Bg.jpg" alt="Inventory Background" class="login-image" />
+        </div>
+
+        <!-- Right Side: Register Form -->
+        <div class="login-form-side d-flex justify-content-center align-items-center">
+            <div class="custom-card text-center fade-transition register-card">
+                <!-- Logo/Title Area -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-center align-items-center mb-2">
+                        <i class="fas fa-user-plus fa-2x" style="color: var(--yale-blue);"></i>
+                    </div>
+                    <h3 class="mb-1">Create Your Account</h3>
+                    <p class="text-muted small mb-3">Join BorrowIT to access campus equipment</p>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <div class="mb-2 text-start">
+                        <label class="form-label small-label">
+                            <i class="fas fa-id-card me-2" style="color: var(--powder-blue);"></i>Full Name
+                        </label>
+                        <input asp-for="FullName" class="form-control form-control-sm" placeholder="Enter your full name" required />
+                    </div>
+
+                    <div class="mb-2 text-start">
+                        <label class="form-label small-label">
+                            <i class="fas fa-envelope me-2" style="color: var(--powder-blue);"></i>Email Address
+                        </label>
+                        <input asp-for="Email" type="email" class="form-control form-control-sm" placeholder="Enter email address" required />
+                    </div>
+
+                    <div class="mb-2 text-start">
+                        <label class="form-label small-label">
+                            <i class="fas fa-user me-2" style="color: var(--powder-blue);"></i>Username
+                        </label>
+                        <input asp-for="Username" class="form-control form-control-sm" placeholder="Choose a unique username" required />
+                    </div>
+
+                    <div class="mb-2 text-start">
+                        <label class="form-label small-label">
+                            <i class="fas fa-lock me-2" style="color: var(--powder-blue);"></i>Password
+                        </label>
+                        <input asp-for="PasswordHash" type="password" class="form-control form-control-sm" placeholder="Create a secure password" required />
+                        <small class="text-muted x-small">
+                            <i class="fas fa-info-circle me-1"></i>Choose a strong password with letters and numbers
+                        </small>
+                    </div>
+
+                    <div class="mb-3 text-start">
+                        <label class="form-label small-label">
+                            <i class="fas fa-graduation-cap me-2" style="color: var(--powder-blue);"></i>I am a...
+                        </label>
+                        <select asp-for="UserType" class="form-select form-select-sm">
+                            <option value="Student">Student</option>
+                            <option value="Instructor">Instructor</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid mb-2">
+                        <button type="submit" class="btn btn-primary-custom btn-sm">
+                            <i class="fas fa-user-check me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-3 pt-2" style="border-top: 2px solid var(--powder-blue);">
+                    <p class="mb-0">
+                        <small class="text-muted">Already have an account?</small><br>
+                        <a href="/Account/Login" class="fw-bold small" id="loginLink">Go to Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginLink = document.getElementById('loginLink');
+
+            // Add fade transition to login link
+            if (loginLink) {
+                loginLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.href;
+
+                    // Add fade out effect
+                    document.querySelector('.custom-card').style.opacity = '0';
+                    document.querySelector('.custom-card').style.transition = 'opacity 0.3s ease';
+
+                    // Navigate after transition
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 300);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

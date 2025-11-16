@@ -1,0 +1,91 @@
+﻿@model Inventory_System.Models.User
+@{
+    ViewData["Title"] = "Admin Profile";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>Admin Profile</h4>
+            <small>@DateTime.Now.ToString("dddd, MMMM d, yyyy")</small>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <!-- Profile Picture -->
+                <div class="col-md-4 text-center">
+                    <img src="~/uploads/profile/@Model.ProfilePicture"
+                         class="rounded-circle border border-3 border-primary shadow-sm mb-3"
+                         width="180" height="180"
+                         alt="Profile Picture"
+                         onerror="this.src='~/images/default-profile.png';" />
+                    <form asp-action="UpdateProfilePicture" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                        <label class="btn btn-outline-primary btn-sm">
+                            <input type="file" name="ProfileImage" accept="image/*" hidden onchange="this.form.submit()" />
+                            Change Picture
+                        </label>
+                    </form>
+                </div>
+
+                <!-- Profile Info -->
+                <div class="col-md-8">
+                    <form asp-action="UpdateProfile" asp-controller="Admin" method="post">
+                        <input type="hidden" asp-for="UserID" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <input asp-for="FullName" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Username</label>
+                                <input asp-for="Username" class="form-control" readonly />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Email</label>
+                                <input asp-for="Email" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Contact Number</label>
+                                <input asp-for="ContactNumber" class="form-control" placeholder="e.g. 09123456789" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter your address here..."></textarea>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Role</label>
+                                <input asp-for="Role" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Status</label>
+                                <input asp-for="Status" class="form-control" readonly />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">Account Security</h5>
+                        <a href="@Url.Action("ChangePassword", "Admin")" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-lock-fill me-1"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
