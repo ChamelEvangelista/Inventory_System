@@ -1,169 +1,239 @@
 ﻿@model IEnumerable<Inventory_System.Models.Equipment>
 
 @{
+    Layout = "_AdminLayout";
     ViewData["Title"] = "Equipment List";
+    ViewData["ActivePage"] = "EquipmentList";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Equipment Inventory Overview</h2>
-        <a href="@Url.Action("ManageEquipment", "Admin")" class="btn btn-secondary">
-            <i class="bi bi-gear-fill"></i> Manage Equipment
-        </a>
-    </div>
-
-    <!-- 🟢 Equipment Status Counters (Now Clickable) -->
-    @{
-        int availableCount = Model.Count(e => e.Status == "Available");
-        int borrowedCount = Model.Count(e => e.Status == "Borrowed");
-        int outOfStockCount = Model.Count(e => e.Status == "Out of Stock");
-    }
-
+<div class="container-fluid py-4">
+    <!-- Page Header -->
     <div class="mb-4">
-        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Available" })"
-           class="badge bg-success me-2 p-2 text-decoration-none">
-            🟢 @availableCount Available
-        </a>
-        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Borrowed" })"
-           class="badge bg-warning text-dark me-2 p-2 text-decoration-none">
-            🟡 @borrowedCount Borrowed
-        </a>
-        <a href="@Url.Action("EquipmentList", "Admin", new { statusFilter = "Out of Stock" })"
-           class="badge bg-danger p-2 text-decoration-none">
-            🔴 @outOfStockCount Out of Stock
-        </a>
-        <a href="@Url.Action("EquipmentList", "Admin")"
-           class="badge bg-secondary p-2 text-decoration-none">
-            🔁 Show All
-        </a>
-    </div>
-
-    <!-- 🔍 Search & Filter Section -->
-    <!-- 🔍 Search & Filter Section -->
-    <form method="get" asp-action="EquipmentList" class="row g-3 mb-4">
-
-        <!-- Search Box -->
-        <div class="col-md-3">
-            <input type="text" name="searchTerm" class="form-control" placeholder="Search by name or description"
-                   value="@Context.Request.Query["searchTerm"]" />
-        </div>
-
-        <!-- ✅ Category Dropdown -->
-        <div class="col-md-2">
-            <select name="categoryFilter" class="form-select filter-dropdown">
-                <option value="">-- All Categories --</option>
-                <option value="Consumable" selected="@(Context.Request.Query["categoryFilter"] == "Consumable")">Consumable</option>
-                <option value="Non-Consumable" selected="@(Context.Request.Query["categoryFilter"] == "Non-Consumable")">Non-Consumable</option>
-            </select>
-        </div>
-
-        <!-- ✅ Type Dropdown (Grouped by Category) -->
-        <div class="col-md-2">
-            <select name="typeFilter" class="form-select filter-dropdown">
-                <option value="">-- All Types --</option>
-
-                <optgroup label="Consumable">
-                    <option value="Office Supplies" selected="@(Context.Request.Query["typeFilter"] == "Office Supplies")">Office Supplies</option>
-                    <option value="Cleaning Supplies" selected="@(Context.Request.Query["typeFilter"] == "Cleaning Supplies")">Cleaning Supplies</option>
-                </optgroup>
-
-                <optgroup label="Non-Consumable">
-                    <option value="ICT Equipment" selected="@(Context.Request.Query["typeFilter"] == "ICT Equipment")">ICT Equipment</option>
-                    <option value="Office Equipment" selected="@(Context.Request.Query["typeFilter"] == "Office Equipment")">Office Equipment</option>
-                    <option value="Audio-Visual Equipment" selected="@(Context.Request.Query["typeFilter"] == "Audio-Visual Equipment")">Audio-Visual Equipment</option>
-                    <option value="Sports Equipment" selected="@(Context.Request.Query["typeFilter"] == "Sports Equipment")">Sports Equipment</option>
-                    <option value="Maintenance Tools" selected="@(Context.Request.Query["typeFilter"] == "Maintenance Tools")">Maintenance Tools</option>
-                </optgroup>
-            </select>
-        </div>
-
-        <!-- ✅ Label Dropdown -->
-        <div class="col-md-2">
-            <select name="labelFilter" class="form-select filter-dropdown">
-                <option value="">-- All Labels --</option>
-                <option value="Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Borrowable")">Borrowable</option>
-                <option value="Non-Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Non-Borrowable")">Non-Borrowable</option>
-            </select>
-        </div>
-
-        <!-- ✅ Status Dropdown -->
-        <div class="col-md-3">
-            <select name="statusFilter" class="form-select filter-dropdown">
-                @{
-                    var currentStatus = Context.Request.Query["statusFilter"].ToString();
-                }
-                <option value="">-- All Status --</option>
-                <option value="Available" selected="@(currentStatus == "Available")">Available</option>
-                <option value="Borrowed" selected="@(currentStatus == "Borrowed")">Borrowed</option>
-                <option value="Out of Stock" selected="@(currentStatus == "Out of Stock")">Out of Stock</option>
-            </select>
-        </div>
-
-        <!-- Buttons -->
-        <div class="col-12 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary me-2">
-                <i class="bi bi-funnel"></i> Filter
-            </button>
-            <a href="@Url.Action("EquipmentList", "Admin")" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i> Clear
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h3 fw-bold mb-2" style="color: var(--yale-blue);">
+                    <i class="fas fa-boxes me-2"></i>Equipment Inventory Overview
+                </h2>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Browse and manage all equipment items in the system
+                </p>
+            </div>
+            <a href="@Url.Action("ManageEquipment", "Admin")"
+               class="btn btn-primary px-4 py-2"
+               style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border: none;">
+                <i class="fas fa-cog me-2"></i>Manage Equipment
             </a>
         </div>
-    </form>
+    </div>
 
+    <!-- Status Counter Badges -->
+    @{
+        int availableCount = Model.Count(e => e.Quantity > 0 && e.Label == "Borrowable");
+        int borrowedCount = Model.Count(e => e.Status == "Borrowed");
+        int outOfStockCount = Model.Count(e => e.Quantity == 0);
+    }
 
-    <!-- 🧱 Equipment Cards -->
-    <div class="row" id="equipmentList">
+    <div class="mb-4 d-flex gap-2 flex-wrap">
+        <div class="badge rounded-pill px-3 py-2"
+             style="background-color: var(--success); color: white; font-size: 0.9rem;">
+            <i class="fas fa-check-circle me-1"></i><span id="availableCount">@availableCount</span> Available
+        </div>
+        <div class="badge rounded-pill px-3 py-2"
+             style="background-color: var(--warning); color: white; font-size: 0.9rem;">
+            <i class="fas fa-hand-holding me-1"></i><span id="borrowedCount">@borrowedCount</span> Borrowed
+        </div>
+        <div class="badge rounded-pill px-3 py-2"
+             style="background-color: var(--danger); color: white; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-triangle me-1"></i><span id="outOfStockCount">@outOfStockCount</span> Out of Stock
+        </div>
+        <a href="@Url.Action("EquipmentList", "Admin")"
+           class="badge rounded-pill px-3 py-2 text-decoration-none"
+           style="background-color: var(--powder-blue); color: var(--yale-blue); font-size: 0.9rem; transition: all 0.2s;">
+            <i class="fas fa-sync-alt me-1"></i>Show All
+        </a>
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="card shadow-sm mb-4" style="border: 2px solid var(--powder-blue); border-radius: 12px;">
+        <div class="card-body p-4">
+            <form method="get" asp-action="EquipmentList">
+                <div class="row g-3">
+                    <!-- Search Box -->
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold small" style="color: var(--yale-blue);">
+                            <i class="fas fa-search me-1"></i>Search
+                        </label>
+                        <input type="text"
+                               name="searchTerm"
+                               class="form-control"
+                               placeholder="Search by name or description"
+                               value="@Context.Request.Query["searchTerm"]"
+                               style="border: 2px solid var(--powder-blue);" />
+                    </div>
+
+                    <!-- Type Dropdown -->
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-semibold small" style="color: var(--yale-blue);">
+                            <i class="fas fa-tags me-1"></i>Type
+                        </label>
+                        <select name="typeFilter" class="form-select" style="border: 2px solid var(--powder-blue);">
+                            <option value="">All Types</option>
+                            <option value="Office Supplies" selected="@(Context.Request.Query["typeFilter"] == "Office Supplies")">Office Supplies</option>
+                            <option value="Cleaning Supplies" selected="@(Context.Request.Query["typeFilter"] == "Cleaning Supplies")">Cleaning Supplies</option>
+                            <option value="ICT Equipment" selected="@(Context.Request.Query["typeFilter"] == "ICT Equipment")">ICT Equipment</option>
+                            <option value="Office Equipment" selected="@(Context.Request.Query["typeFilter"] == "Office Equipment")">Office Equipment</option>
+                            <option value="Audio-Visual Equipment" selected="@(Context.Request.Query["typeFilter"] == "Audio-Visual Equipment")">Audio-Visual Equipment</option>
+                            <option value="Sports Equipment" selected="@(Context.Request.Query["typeFilter"] == "Sports Equipment")">Sports Equipment</option>
+                            <option value="Maintenance Tools" selected="@(Context.Request.Query["typeFilter"] == "Maintenance Tools")">Maintenance Tools</option>
+                        </select>
+                    </div>
+
+                    <!-- Label Dropdown -->
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-semibold small" style="color: var(--yale-blue);">
+                            <i class="fas fa-bookmark me-1"></i>Label
+                        </label>
+                        <select name="labelFilter" class="form-select" style="border: 2px solid var(--powder-blue);">
+                            <option value="">All Labels</option>
+                            <option value="Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Borrowable")">Borrowable</option>
+                            <option value="Non-Borrowable" selected="@(Context.Request.Query["labelFilter"] == "Non-Borrowable")">Non-Borrowable</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Dropdown -->
+                    <div class="col-lg-2 col-md-6">
+                        <label class="form-label fw-semibold small" style="color: var(--yale-blue);">
+                            <i class="fas fa-toggle-on me-1"></i>Status
+                        </label>
+                        <select name="statusFilter" class="form-select" style="border: 2px solid var(--powder-blue);">
+                            @{
+                                var currentStatus = Context.Request.Query["statusFilter"].ToString();
+                            }
+                            <option value="">All Status</option>
+                            <option value="Available" selected="@(currentStatus == "Available")">Available</option>
+                            <option value="Borrowed" selected="@(currentStatus == "Borrowed")">Borrowed</option>
+                            <option value="Out of Stock" selected="@(currentStatus == "Out of Stock")">Out of Stock</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-lg-3 col-md-12 d-flex align-items-end gap-2">
+                        <button type="submit"
+                                class="btn btn-primary flex-fill"
+                                style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border: none;">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                        <a href="@Url.Action("EquipmentList", "Admin")"
+                           class="btn btn-outline-secondary flex-fill"
+                           style="border: 2px solid var(--powder-blue); color: var(--yale-blue);">
+                            <i class="fas fa-times-circle me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Equipment Cards Grid - 5 Cards Per Row -->
+    <div class="row g-4" id="equipmentList">
         @if (Model != null && Model.Any())
         {
             foreach (var item in Model)
             {
-                <div class="col-md-3 mb-4 equipment-card"
+                <div class="col-xl-2dot4 col-lg-3 col-md-4 col-sm-6 equipment-card"
+                     data-id="@item.EquipmentID"
                      data-name="@item.Name.ToLower()"
-                     data-category="@item.Category"
                      data-type="@item.Type"
                      data-label="@item.Label"
+                     data-quantity="@item.Quantity"
                      data-status="@item.Status">
 
-                    <div class="card shadow-sm h-100">
-                        <img src="~/images/equipment/@(item.ImagePath ?? "no-image.png")"
-                             alt="@item.Name"
-                             class="card-img-top"
-                             style="height:200px; object-fit:cover; border-bottom: 1px solid #eee;" />
+                    <div class="card h-100 shadow-sm equipment-item-card"
+                         style="border: 2px solid var(--powder-blue); border-radius: 12px; transition: all 0.3s ease; overflow: hidden;">
 
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title text-primary fw-semibold">@item.Name</h5>
-                            <p class="card-text text-muted small mb-2">@item.Description</p>
+                        <!-- Equipment Image -->
+                        <div class="position-relative" style="height: 180px; overflow: hidden; background-color: var(--alice-blue);">
+                            @if (!string.IsNullOrEmpty(item.ImagePath))
+                            {
+                                <img src="~/images/equipment/@item.ImagePath"
+                                     alt="@item.Name"
+                                     class="w-100 h-100"
+                                     style="object-fit: cover;"
+                                     onerror="this.src='/images/equipment/no-image.png'" />
+                            }
+                            else
+                            {
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-box fa-4x" style="color: var(--powder-blue); opacity: 0.5;"></i>
+                                </div>
+                            }
 
-                            <p class="mb-1">
-                                <strong>Category:</strong> @item.Category <br />
-                                <strong>Type:</strong> @item.Type <br />
-                                <strong>Label:</strong> @item.Label
-                            </p>
-
-                            <p class="mb-2">
-                                <strong>Status:</strong>
-                                @if (item.Status == "Available")
+                            <!-- Status Badge Overlay -->
+                            <div class="position-absolute top-0 end-0 m-2">
+                                @if (item.Quantity > 0 && item.Label == "Borrowable")
                                 {
-                                    <span class="badge bg-success">@item.Status</span>
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--success); font-size: 0.7rem;">
+                                        <i class="fas fa-check-circle me-1"></i>Available
+                                    </span>
+                                }
+                                else if (item.Quantity == 0)
+                                {
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--danger); font-size: 0.7rem;">
+                                        <i class="fas fa-times-circle me-1"></i>Out of Stock
+                                    </span>
                                 }
                                 else if (item.Status == "Borrowed")
                                 {
-                                    <span class="badge bg-warning text-dark">@item.Status</span>
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--warning); font-size: 0.7rem;">
+                                        <i class="fas fa-hand-holding me-1"></i>Borrowed
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-danger">@item.Status</span>
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--secondary); font-size: 0.7rem;">
+                                        <i class="fas fa-ban me-1"></i>Non-Borrowable
+                                    </span>
                                 }
+                            </div>
+                        </div>
+
+                        <div class="card-body d-flex flex-column p-3">
+                            <!-- Equipment Name -->
+                            <h6 class="card-title fw-bold mb-2" style="color: var(--yale-blue); font-size: 0.95rem;">
+                                @item.Name
+                            </h6>
+
+                            <!-- Description -->
+                            <p class="card-text text-muted small mb-3" style="font-size: 0.8rem; line-height: 1.4;">
+                                @(item.Description?.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)
                             </p>
 
-                            <p class="mb-3">
-                                <strong>Available Quantity:</strong> @item.Quantity
-                            </p>
+                            <!-- Equipment Details -->
+                            <div class="mb-3" style="font-size: 0.8rem;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-tag me-2" style="color: var(--powder-blue); width: 16px;"></i>
+                                    <span class="text-muted">Type:</span>
+                                    <span class="fw-semibold ms-1" style="color: var(--yale-blue);">@item.Type</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-bookmark me-2" style="color: var(--powder-blue); width: 16px;"></i>
+                                    <span class="text-muted">Label:</span>
+                                    <span class="fw-semibold ms-1" style="color: var(--yale-blue);">@item.Label</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-boxes me-2" style="color: var(--powder-blue); width: 16px;"></i>
+                                    <span class="text-muted">Quantity:</span>
+                                    <span class="fw-bold ms-1 quantity-display" style="color: var(--success);">@item.Quantity</span>
+                                </div>
+                            </div>
 
+                            <!-- Manage Button -->
                             <div class="mt-auto">
                                 <a href="@Url.Action("EditEquipment", "Admin", new { id = item.EquipmentID })"
-                                   class="btn btn-sm btn-primary w-100">
-                                    <i class="bi bi-pencil-square"></i> Manage
+                                   class="btn btn-sm w-100 py-2"
+                                   style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); color: white; border: none; font-weight: 600; transition: all 0.2s;">
+                                    <i class="fas fa-edit me-1"></i>Manage
                                 </a>
                             </div>
                         </div>
@@ -173,8 +243,17 @@
         }
         else
         {
-            <div class="col-12 text-center">
-                <p class="text-muted mt-5">No equipment items found.</p>
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-box-open fa-4x" style="color: var(--powder-blue); opacity: 0.5;"></i>
+                    </div>
+                    <h4 style="color: var(--yale-blue);">No Equipment Found</h4>
+                    <p class="text-muted">No equipment items match your current filters.</p>
+                    <a href="@Url.Action("EquipmentList", "Admin")" class="btn btn-outline-primary mt-3">
+                        <i class="fas fa-sync-alt me-1"></i>Reset Filters
+                    </a>
+                </div>
             </div>
         }
     </div>
@@ -182,7 +261,7 @@
 
 @section Scripts {
     <script>
-        // Optional live search (instant filter without reload)
+        // Live search functionality
         $(document).ready(function () {
             $('input[name="searchTerm"]').on('keyup', function () {
                 var searchValue = $(this).val().toLowerCase();
@@ -191,6 +270,74 @@
                     $(this).toggle(name.includes(searchValue));
                 });
             });
+
+            // Real-time updates for equipment status and quantities
+            function startEquipmentUpdates() {
+                setInterval(updateEquipmentStatus, 5000); // Update every 5 seconds
+            }
+
+            function updateEquipmentStatus() {
+                $.ajax({
+                    url: '@Url.Action("GetEquipmentUpdates", "Admin")',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            updateEquipmentCards(response.equipment);
+                            updateStatusCounters(response.counters);
+                        }
+                    },
+                    error: function() {
+                        console.log('Error fetching equipment updates');
+                    }
+                });
+            }
+
+            function updateEquipmentCards(equipmentData) {
+                equipmentData.forEach(function(item) {
+                    var card = $('.equipment-card[data-id="' + item.equipmentID + '"]');
+                    if (card.length) {
+                        // Update quantity
+                        var quantityDisplay = card.find('.quantity-display');
+                        quantityDisplay.text(item.quantity);
+
+                        // Update quantity color based on value
+                        if (item.quantity > 0) {
+                            quantityDisplay.css('color', 'var(--success)');
+                        } else {
+                            quantityDisplay.css('color', 'var(--danger)');
+                        }
+
+                        // Update status badge
+                        var statusBadge = card.find('.status-badge');
+                        updateStatusBadge(statusBadge, item.quantity, item.label, item.status);
+                    }
+                });
+            }
+
+            function updateStatusBadge(statusBadge, quantity, label, status) {
+                if (quantity > 0 && label === 'Borrowable') {
+                    statusBadge.html('<i class="fas fa-check-circle me-1"></i>Available');
+                    statusBadge.css('background-color', 'var(--success)');
+                } else if (quantity === 0) {
+                    statusBadge.html('<i class="fas fa-times-circle me-1"></i>Out of Stock');
+                    statusBadge.css('background-color', 'var(--danger)');
+                } else if (status === 'Borrowed') {
+                    statusBadge.html('<i class="fas fa-hand-holding me-1"></i>Borrowed');
+                    statusBadge.css('background-color', 'var(--warning)');
+                } else {
+                    statusBadge.html('<i class="fas fa-ban me-1"></i>Non-Borrowable');
+                    statusBadge.css('background-color', 'var(--secondary)');
+                }
+            }
+
+            function updateStatusCounters(counters) {
+                $('#availableCount').text(counters.availableCount);
+                $('#borrowedCount').text(counters.borrowedCount);
+                $('#outOfStockCount').text(counters.outOfStockCount);
+            }
+
+            // Start periodic updates
+            startEquipmentUpdates();
         });
     </script>
 }

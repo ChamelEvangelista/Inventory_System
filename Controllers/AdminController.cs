@@ -1,17 +1,17 @@
 ﻿using Inventory_System.Data;
 using Inventory_System.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using System.Drawing;
-
-using System.Linq;
-using System.IO;
+using Microsoft.AspNetCore.Hosting; // ADD THIS
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using System;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Inventory_System.Controllers
@@ -19,10 +19,13 @@ namespace Inventory_System.Controllers
     public class AdminController : Controller
     {
         private readonly InventoryDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment; // ADD THIS
 
-        public AdminController(InventoryDbContext context)
+        // UPDATED CONSTRUCTOR
+        public AdminController(InventoryDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment; // ADD THIS
         }
 
         // =========================
@@ -33,12 +36,140 @@ namespace Inventory_System.Controllers
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
 
+            // Existing counts
             ViewBag.PendingUsers = _context.Users.Count(u => u.Status == "Pending");
             ViewBag.TotalEquipment = _context.Equipment.Count();
             ViewBag.BorrowedItems = _context.BorrowRecords.Count(b => b.Status == "Borrowed");
             ViewBag.ReturnedItems = _context.BorrowRecords.Count(b => b.Status == "Returned");
             ViewBag.BorrowableCount = _context.Equipment.Count(e => e.Label == "Borrowable");
             ViewBag.NonBorrowableCount = _context.Equipment.Count(e => e.Label == "Non-Borrowable");
+
+            // NEW: Recent Activities - Mixed from all sources
+            var recentActivities = new List<dynamic>();
+
+            // 1. Get recent borrow/return activities
+            var recentBorrowRecords = _context.BorrowRecords
+                .Include(b => b.User)
+                .Include(b => b.Equipment)
+                .OrderByDescending(b => b.BorrowDate)
+                .Take(3)
+                .ToList();
+
+            foreach (var record in recentBorrowRecords)
+            {
+                if (record.Status == "Borrowed")
+                {
+                    recentActivities.Add(new
+                    {
+                        Type = "Borrowed",
+                        Title = "Equipment Borrowed",
+                        Description = $"{record.User?.FullName ?? "Unknown User"} borrowed {record.Equipment?.Name ?? "Unknown Equipment"}",
+                        Details = $"Quantity: {record.Quantity} | Purpose: {record.Purpose}",
+                        Timestamp = record.BorrowDate
+                    });
+                }
+                else if (record.Status == "Returned" && record.ReturnDate.HasValue)
+                {
+                    var isOnTime = record.ReturnDate <= record.ExpectedReturnDate;
+                    recentActivities.Add(new
+                    {
+                        Type = "Returned",
+                        Title = "Equipment Returned",
+                        Description = $"{record.User?.FullName ?? "Unknown User"} returned {record.Equipment?.Name ?? "Unknown Equipment"}",
+                        Details = $"{(isOnTime ? "✓ On time" : "⚠ Late return")} | Quantity: {record.Quantity}",
+                        Timestamp = record.ReturnDate.Value
+                    });
+                }
+            }
+
+            // 2. Get recent user registrations
+            var recentUsers = _context.Users
+                .Where(u => u.Role != "Admin")
+                .OrderByDescending(u => u.UserID)
+                .Take(2)
+                .ToList();
+
+            foreach (var user in recentUsers)
+            {
+                recentActivities.Add(new
+                {
+                    Type = "UserRegistration",
+                    Title = "New User Registration",
+                    Description = $"{user.FullName} registered as {user.UserType}",
+                    Details = $"Status: {user.Status}",
+                    Timestamp = DateTime.Now // Use current time for recent registrations
+                });
+            }
+
+            // 3. Get recent equipment additions
+            var recentEquipment = _context.Equipment
+                .OrderByDescending(e => e.EquipmentID)
+                .Take(2)
+                .ToList();
+
+            foreach (var equipment in recentEquipment)
+            {
+                recentActivities.Add(new
+                {
+                    Type = "EquipmentAdded",
+                    Title = "Equipment Added",
+                    Description = $"New equipment '{equipment.Name}' added to inventory",
+                    Details = $"Type: {equipment.Type} | Quantity: {equipment.Quantity}",
+                    Timestamp = DateTime.Now // Use current time for recent additions
+                });
+            }
+
+            // 4. Get recent user approvals
+            var recentApprovals = _context.Users
+                .Where(u => u.Status == "Active" && u.Role != "Admin")
+                .OrderByDescending(u => u.UserID)
+                .Take(2)
+                .ToList();
+
+            foreach (var user in recentApprovals)
+            {
+                recentActivities.Add(new
+                {
+                    Type = "UserApproval",
+                    Title = "User Approved",
+                    Description = $"{user.FullName} was approved",
+                    Details = $"User Type: {user.UserType}",
+                    Timestamp = DateTime.Now // Use current time for recent approvals
+                });
+            }
+
+            // 5. Get recent equipment updates
+            var recentUpdates = _context.Equipment
+                .OrderByDescending(e => e.EquipmentID)
+                .Take(1)
+                .ToList();
+
+            foreach (var equipment in recentUpdates)
+            {
+                recentActivities.Add(new
+                {
+                    Type = "EquipmentUpdated",
+                    Title = "Equipment Updated",
+                    Description = $"'{equipment.Name}' was updated",
+                    Details = $"Status: {equipment.Status} | Quantity: {equipment.Quantity}",
+                    Timestamp = DateTime.Now // Use current time for recent updates
+                });
+            }
+
+            // Sort ALL activities by ID (as proxy for recentness) and take the 5 most recent
+            ViewBag.RecentActivities = recentActivities
+                .OrderByDescending(a => a.Timestamp)
+                .Take(5)
+                .ToList();
+
+            // Equipment Distribution Chart Data (existing)
+            var equipmentTypes = _context.Equipment
+                .GroupBy(e => e.Type)
+                .Select(g => new { Type = g.Key, Count = g.Count() })
+                .ToList();
+
+            ViewBag.EquipmentTypeLabels = equipmentTypes.Select(et => et.Type).ToList();
+            ViewBag.EquipmentTypeCounts = equipmentTypes.Select(et => et.Count).ToList();
 
             return View();
         }
@@ -156,7 +287,6 @@ namespace Inventory_System.Controllers
                 searchQuery = searchQuery.ToLower();
                 equipmentList = equipmentList.Where(e =>
                     e.Name.ToLower().Contains(searchQuery) ||
-                    e.Category.ToLower().Contains(searchQuery) ||
                     e.Label.ToLower().Contains(searchQuery)
                 );
             }
@@ -174,8 +304,6 @@ namespace Inventory_System.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
                 query = query.Where(e => e.Name.Contains(searchTerm) || e.Description.Contains(searchTerm));
-            if (!string.IsNullOrEmpty(categoryFilter))
-                query = query.Where(e => e.Category == categoryFilter);
             if (!string.IsNullOrEmpty(typeFilter))
                 query = query.Where(e => e.Type == typeFilter);
             if (!string.IsNullOrEmpty(labelFilter))
@@ -183,7 +311,6 @@ namespace Inventory_System.Controllers
             if (!string.IsNullOrEmpty(statusFilter))
                 query = query.Where(e => e.Status == statusFilter);
 
-            ViewBag.Categories = _context.Equipment.Select(e => e.Category).Distinct().ToList();
             ViewBag.Types = _context.Equipment.Select(e => e.Type).Distinct().ToList();
             ViewBag.Labels = _context.Equipment.Select(e => e.Label).Distinct().ToList();
 
@@ -202,23 +329,80 @@ namespace Inventory_System.Controllers
             return View();
         }
 
+        // UPDATED ADD EQUIPMENT WITH IMAGE UPLOAD
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddEquipment(Equipment equipment)
+        public async Task<IActionResult> AddEquipment(Equipment equipment, IFormFile ImageFile)
         {
             try
             {
-                equipment.Status = "Available";
-                _context.Equipment.Add(equipment);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = "Item added successfully!";
-            }
-            catch
-            {
-                TempData["ErrorMessage"] = "Failed to add item.";
-            }
+                // Handle image upload
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    // Validate file size (5MB max)
+                    if (ImageFile.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["ErrorMessage"] = "File size must be less than 5MB";
+                        LoadDropdowns();
+                        return View(equipment);
+                    }
 
-            return RedirectToAction("ManageEquipment");
+                    // Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(ImageFile.FileName).ToLower();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        TempData["ErrorMessage"] = "Only JPG, PNG, and GIF files are allowed";
+                        LoadDropdowns();
+                        return View(equipment);
+                    }
+
+                    // Generate unique filename
+                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(ImageFile.FileName)}";
+
+                    // Define upload path
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "equipment");
+
+                    // Create directory if it doesn't exist
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // Save file to server
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(fileStream);
+                    }
+
+                    // Store filename in database
+                    equipment.ImagePath = uniqueFileName;
+                }
+                else
+                {
+                    // No image uploaded, use default
+                    equipment.ImagePath = "no-image.png";
+                }
+
+                // Set status based on quantity
+                equipment.Status = equipment.Quantity > 0 ? "Available" : "Out of Stock";
+
+                // Add to database
+                _context.Equipment.Add(equipment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Equipment '{equipment.Name}' added successfully!";
+                return RedirectToAction("ManageEquipment");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error adding equipment: {ex.Message}";
+                LoadDropdowns();
+                return View(equipment);
+            }
         }
 
         [HttpGet]
@@ -231,34 +415,179 @@ namespace Inventory_System.Controllers
             return View(item);
         }
 
+        // UPDATED EDIT EQUIPMENT WITH IMAGE UPLOAD
         [HttpPost]
-        public IActionResult EditEquipment(Equipment equipment)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditEquipment(Equipment equipment, IFormFile ImageFile)
         {
-            if (ModelState.IsValid)
+            try
             {
-                _context.Equipment.Update(equipment);
-                _context.SaveChanges();
+                // Get existing equipment from database
+                var existingEquipment = await _context.Equipment.FindAsync(equipment.EquipmentID);
+
+                if (existingEquipment == null)
+                {
+                    TempData["ErrorMessage"] = "Equipment not found";
+                    return RedirectToAction("ManageEquipment");
+                }
+
+                // Handle new image upload
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    // Validate file size (5MB max)
+                    if (ImageFile.Length > 5 * 1024 * 1024)
+                    {
+                        TempData["ErrorMessage"] = "File size must be less than 5MB";
+                        LoadDropdowns();
+                        return View(equipment);
+                    }
+
+                    // Validate file type
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    var fileExtension = Path.GetExtension(ImageFile.FileName).ToLower();
+
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        TempData["ErrorMessage"] = "Only JPG, PNG, and GIF files are allowed";
+                        LoadDropdowns();
+                        return View(equipment);
+                    }
+
+                    // Delete old image if it exists and is not the default
+                    if (!string.IsNullOrEmpty(existingEquipment.ImagePath) &&
+                        existingEquipment.ImagePath != "no-image.png")
+                    {
+                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "equipment", existingEquipment.ImagePath);
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    // Generate unique filename for new image
+                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(ImageFile.FileName)}";
+
+                    // Define upload path
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "equipment");
+
+                    // Create directory if it doesn't exist
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // Save new file to server
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(fileStream);
+                    }
+
+                    // Update image path
+                    existingEquipment.ImagePath = uniqueFileName;
+                }
+                // If no new image uploaded, keep the existing image path
+
+                // Update equipment details
+                existingEquipment.Name = equipment.Name;
+                existingEquipment.Description = equipment.Description;
+                existingEquipment.Type = equipment.Type;
+                existingEquipment.Label = equipment.Label;
+                existingEquipment.Quantity = equipment.Quantity;
+                existingEquipment.Status = equipment.Status;
+
+                // Save changes
+                _context.Equipment.Update(existingEquipment);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Equipment '{equipment.Name}' updated successfully!";
                 return RedirectToAction("ManageEquipment");
             }
-
-            LoadDropdowns();
-            return View(equipment);
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error updating equipment: {ex.Message}";
+                LoadDropdowns();
+                return View(equipment);
+            }
         }
 
-        public IActionResult DeleteEquipment(int id)
+        // Add this method to your AdminController
+        [HttpGet]
+        public IActionResult GetEquipmentUpdates()
         {
-            var item = _context.Equipment.Find(id);
-            if (item != null)
+            try
             {
-                _context.Equipment.Remove(item);
-                _context.SaveChanges();
+                var equipment = _context.Equipment.ToList();
+
+                // Calculate counters based on the new logic
+                int availableCount = equipment.Count(e => e.Quantity > 0 && e.Label == "Borrowable");
+                int borrowedCount = _context.BorrowRecords.Count(b => b.Status == "Borrowed");
+                int outOfStockCount = equipment.Count(e => e.Quantity == 0);
+
+                var equipmentData = equipment.Select(e => new
+                {
+                    equipmentID = e.EquipmentID,
+                    quantity = e.Quantity,
+                    status = e.Status,
+                    label = e.Label
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    equipment = equipmentData,
+                    counters = new
+                    {
+                        availableCount,
+                        borrowedCount,
+                        outOfStockCount
+                    }
+                });
             }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // UPDATED DELETE EQUIPMENT WITH IMAGE DELETION
+        public async Task<IActionResult> DeleteEquipment(int id)
+        {
+            try
+            {
+                var item = await _context.Equipment.FindAsync(id);
+
+                if (item == null)
+                {
+                    TempData["ErrorMessage"] = "Equipment not found";
+                    return RedirectToAction("ManageEquipment");
+                }
+
+                // Delete image file if it exists and is not the default
+                if (!string.IsNullOrEmpty(item.ImagePath) && item.ImagePath != "no-image.png")
+                {
+                    var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "equipment", item.ImagePath);
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        System.IO.File.Delete(imagePath);
+                    }
+                }
+
+                // Delete equipment from database
+                _context.Equipment.Remove(item);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = $"Equipment '{item.Name}' deleted successfully!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error deleting equipment: {ex.Message}";
+            }
+
             return RedirectToAction("ManageEquipment");
         }
 
-        // =========================
-        // REPORTS
-        // =========================
         public IActionResult Reports()
         {
             if (HttpContext.Session.GetString("Role") != "Admin")
@@ -268,8 +597,8 @@ namespace Inventory_System.Controllers
             var totalEquipment = _context.Equipment.Count();
             var availableEquipment = _context.Equipment.Count(e => e.Status == "Available");
             var borrowedEquipment = _context.BorrowRecords.Count(b => b.Status == "Borrowed");
-            var overdueEquipment = _context.BorrowRecords.Count(b =>
-                b.Status == "Borrowed" && b.ExpectedReturnDate < DateTime.Now);
+            var overdueEquipment = _context.BorrowRecords
+                .Count(b => b.Status == "Borrowed" && b.ExpectedReturnDate < DateTime.Now);
 
             var activeUsers = _context.Users.Count(u => u.Status == "Active");
             var pendingUsers = _context.Users.Count(u => u.Status == "Pending");
@@ -289,24 +618,26 @@ namespace Inventory_System.Controllers
                 .Take(5)
                 .ToList();
 
-            // Overdue records
+            // =============================
+            // FIXED OVERDUE RECORDS SECTION
+            // =============================
             var overdueRecords = _context.BorrowRecords
                 .Where(b => b.Status == "Borrowed" && b.ExpectedReturnDate < DateTime.Now)
-                .AsEnumerable() // Force client-side evaluation (prevents SQL coercion error)
+                .AsEnumerable() // Required to avoid SQL coercion errors
                 .Select(b => new
                 {
                     b.BorrowID,
-                    Borrower = b.User.FullName,
-                    EquipmentName = b.Equipment.Name,
+                    Borrower = b.User != null ? b.User.FullName : "Unknown User",
+                    EquipmentName = b.Equipment != null ? b.Equipment.Name : "Unknown Equipment",
                     b.BorrowDate,
                     b.ExpectedReturnDate,
                     DaysOverdue = (DateTime.Now - b.ExpectedReturnDate).Days
                 })
                 .ToList();
 
-
             // Monthly borrowing activity
             var borrowActivity = _context.BorrowRecords
+                .AsEnumerable()
                 .GroupBy(b => new { b.BorrowDate.Year, b.BorrowDate.Month })
                 .Select(g => new
                 {
@@ -316,7 +647,9 @@ namespace Inventory_System.Controllers
                 .OrderBy(x => x.Month)
                 .ToList();
 
-            // Assemble view model
+            // =============================
+            // BUILDING THE VIEW MODEL
+            // =============================
             var viewModel = new ReportViewModel
             {
                 TotalEquipment = totalEquipment,
@@ -325,95 +658,25 @@ namespace Inventory_System.Controllers
                 OverdueEquipment = overdueEquipment,
                 ActiveUsers = activeUsers,
                 PendingUsers = pendingUsers,
+
                 BorrowedByUserType = borrowedByUserType
                     .ToDictionary(x => x.UserType ?? "Unknown", x => x.Count),
+
                 TopBorrowedEquipment = topBorrowedEquipment
                     .ToDictionary(x => x.EquipmentName, x => x.TotalBorrowed),
+
                 OverdueRecords = overdueRecords.Select(o => new OverdueRecordVM
                 {
                     BorrowID = o.BorrowID,
+                    Borrower = o.Borrower,
+                    Equipment = o.EquipmentName,
                     BorrowDate = o.BorrowDate,
                     ExpectedReturn = o.ExpectedReturnDate,
                     DaysOverdue = o.DaysOverdue
                 }).ToList(),
-                BorrowActivity = borrowActivity.ToDictionary(x => x.Month, x => x.Count)
             };
 
             return View(viewModel);
-        }
-
-        // =========================
-        // EXPORT TO EXCEL (EPPlus)
-        // =========================
-        [HttpGet]
-        public IActionResult ExportToExcel()
-        {
-            var borrowRecords = _context.BorrowRecords
-                .Select(b => new
-                {
-                    b.BorrowID,
-                    Borrower = b.User.FullName,
-                    UserType = b.User.UserType,
-                    Equipment = b.Equipment.Name,
-                    b.Quantity,
-                    b.BorrowDate,
-                    b.ExpectedReturnDate,
-                    b.Status
-                })
-                .ToList();
-
-            using (var package = new ExcelPackage())
-            {
-                var worksheet = package.Workbook.Worksheets.Add("Borrow Report");
-
-                // Title
-                worksheet.Cells["A1"].Value = "Technology Equipment Inventory System - Borrowing Report";
-                worksheet.Cells["A1:H1"].Merge = true;
-                worksheet.Cells["A1"].Style.Font.Bold = true;
-                worksheet.Cells["A1"].Style.Font.Size = 14;
-                worksheet.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
-                // Headers
-                worksheet.Cells["A3"].Value = "Borrow ID";
-                worksheet.Cells["B3"].Value = "Borrower";
-                worksheet.Cells["C3"].Value = "User Type";
-                worksheet.Cells["D3"].Value = "Equipment";
-                worksheet.Cells["E3"].Value = "Quantity";
-                worksheet.Cells["F3"].Value = "Borrow Date";
-                worksheet.Cells["G3"].Value = "Expected Return";
-                worksheet.Cells["H3"].Value = "Status";
-
-                using (var headerRange = worksheet.Cells["A3:H3"])
-                {
-                    headerRange.Style.Font.Bold = true;
-                    headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    headerRange.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
-                    headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                }
-
-                int row = 4;
-                foreach (var record in borrowRecords)
-                {
-                    worksheet.Cells[row, 1].Value = record.BorrowID;
-                    worksheet.Cells[row, 2].Value = record.Borrower;
-                    worksheet.Cells[row, 3].Value = record.UserType;
-                    worksheet.Cells[row, 4].Value = record.Equipment;
-                    worksheet.Cells[row, 5].Value = record.Quantity;
-                    worksheet.Cells[row, 6].Value = record.BorrowDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 7].Value = record.ExpectedReturnDate.ToString("yyyy-MM-dd");
-                    worksheet.Cells[row, 8].Value = record.Status;
-                    row++;
-                }
-
-                worksheet.Cells.AutoFitColumns();
-
-                var stream = new MemoryStream();
-                package.SaveAs(stream);
-                stream.Position = 0;
-
-                string fileName = $"EquipmentReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-            }
         }
 
         // =========================
@@ -538,7 +801,23 @@ namespace Inventory_System.Controllers
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
 
+            string username = HttpContext.Session.GetString("Username");
+
+            // HARD-CODED ADMIN
+            if (username == "admin")
+            {
+                HttpContext.Session.SetString("Admin_FullName", updatedData.FullName ?? "Administrator");
+                HttpContext.Session.SetString("Admin_Email", updatedData.Email ?? "admin@email.com");
+                HttpContext.Session.SetString("Admin_Contact", updatedData.ContactNumber ?? "N/A");
+                HttpContext.Session.SetString("Admin_Address", updatedData.Address ?? "N/A");
+
+                TempData["SuccessMessage"] = "Profile updated successfully!";
+                return RedirectToAction("AdminProfile");
+            }
+
+            // DATABASE ADMIN
             var admin = _context.Users.FirstOrDefault(u => u.UserID == updatedData.UserID);
+
             if (admin != null)
             {
                 admin.FullName = updatedData.FullName;
@@ -546,37 +825,94 @@ namespace Inventory_System.Controllers
                 admin.ContactNumber = updatedData.ContactNumber;
                 admin.Address = updatedData.Address;
                 _context.SaveChanges();
-
-                TempData["SuccessMessage"] = "Profile updated successfully!";
             }
+
+            TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction("AdminProfile");
         }
+
 
         [HttpPost]
         public async Task<IActionResult> UpdateProfilePicture(IFormFile ProfileImage)
         {
-            if (ProfileImage != null)
+            if (HttpContext.Session.GetString("Role") != "Admin")
+                return RedirectToAction("AccessDenied", "Account");
+
+            if (ProfileImage == null || ProfileImage.Length == 0)
             {
-                var username = HttpContext.Session.GetString("Username");
-                var admin = _context.Users.FirstOrDefault(u => u.Username == username && u.Role == "Admin");
-
-                if (admin != null)
-                {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/admin-profile");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(ProfileImage.FileName)}";
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                        await ProfileImage.CopyToAsync(stream);
-
-                    admin.ProfilePicture = fileName;
-                    _context.SaveChanges();
-                }
+                TempData["ErrorMessage"] = "Please select an image.";
+                return RedirectToAction("AdminProfile");
             }
 
+            // Validate file size (max 5MB)
+            if (ProfileImage.Length > 5 * 1024 * 1024)
+            {
+                TempData["ErrorMessage"] = "Image size must not exceed 5MB.";
+                return RedirectToAction("AdminProfile");
+            }
+
+            // Allowed image types
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var fileExtension = Path.GetExtension(ProfileImage.FileName).ToLower();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                TempData["ErrorMessage"] = "Only JPG and PNG images are allowed.";
+                return RedirectToAction("AdminProfile");
+            }
+
+            string username = HttpContext.Session.GetString("Username");
+
+            // Default admin (hardcoded)
+            User admin = null;
+            if (username == "admin")
+            {
+                admin = new User
+                {
+                    Username = "admin",
+                    ProfilePicture = HttpContext.Session.GetString("ProfilePicture") ?? "default-profile.png"
+                };
+            }
+            else
+            {
+                admin = _context.Users.FirstOrDefault(u => u.Username == username && u.Role == "Admin");
+                if (admin == null)
+                    return RedirectToAction("Login", "Account");
+            }
+
+            // Create upload folder
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "profile");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            // Create unique filename
+            var newFileName = $"{Guid.NewGuid()}{fileExtension}";
+            var newFilePath = Path.Combine(uploadsFolder, newFileName);
+
+            // Save new image
+            using (var stream = new FileStream(newFilePath, FileMode.Create))
+                await ProfileImage.CopyToAsync(stream);
+
+            // Delete old picture (if not default)
+            if (!string.IsNullOrEmpty(admin.ProfilePicture) &&
+                admin.ProfilePicture != "default-profile.png")
+            {
+                var oldImagePath = Path.Combine(uploadsFolder, admin.ProfilePicture);
+                if (System.IO.File.Exists(oldImagePath))
+                    System.IO.File.Delete(oldImagePath);
+            }
+
+            // Update database only if admin is from DB
+            if (username != "admin")
+            {
+                admin.ProfilePicture = newFileName;
+                _context.SaveChanges();
+            }
+
+            // Update session for hardcoded admin or DB admin
+            HttpContext.Session.SetString("ProfilePicture", newFileName);
+
+            TempData["SuccessMessage"] = "Profile picture updated successfully!";
             return RedirectToAction("AdminProfile");
         }
 
@@ -585,7 +921,6 @@ namespace Inventory_System.Controllers
         // =========================
         private void LoadDropdowns()
         {
-            ViewBag.Categories = new string[] { "Consumable", "Non-Consumable" };
             ViewBag.Types = new string[]
             {
                 "Office Supplies", "Cleaning Supplies",

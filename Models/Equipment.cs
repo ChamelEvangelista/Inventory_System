@@ -13,9 +13,6 @@ namespace Inventory_System.Models
 
         public string Description { get; set; }
 
-        [Required(ErrorMessage = "Please select a category.")]
-        public string Category { get; set; } // Consumable / Non-Consumable
-
         [Required(ErrorMessage = "Please select a type.")]
         public string Type { get; set; } // Office Supplies, ICT Equipment, etc.
 

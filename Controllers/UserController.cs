@@ -83,8 +83,7 @@ namespace Inventory_System.Controllers
 
             var availableEquipment = _context.Equipment
                 .Where(e => e.Status == "Available" && e.Quantity > 0)
-                .OrderBy(e => e.Category)
-                .ThenBy(e => e.Type)
+                .OrderBy(e => e.Type)
                 .ToList();
 
             return View(availableEquipment);
@@ -164,7 +163,6 @@ namespace Inventory_System.Controllers
                           b.BorrowID,
                           e.Label,
                           e.Name,
-                          e.Category,
                           e.Type,
                           b.Quantity,
                           b.BorrowDate,
@@ -220,7 +218,6 @@ namespace Inventory_System.Controllers
                       {
                           e.Label,
                           e.Name,
-                          e.Category,
                           e.Type,
                           b.Quantity,
                           b.Purpose,

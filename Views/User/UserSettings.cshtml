@@ -1,40 +1,39 @@
 ﻿@model Inventory_System.Models.User
 
 @{
+    Layout = "~/Views/Shared/_UserLayout.cshtml";
     ViewData["Title"] = "User Settings";
 }
 
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col">
-            <h2 class="fw-bold">User Settings</h2>
-            <p class="text-muted">Manage your account information and profile</p>
-        </div>
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark mb-2">User Settings</h2>
+        <p class="text-muted">Manage your account information and profile</p>
     </div>
 
     <div class="row">
         <!-- Profile Picture Section -->
         <div class="col-md-4 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Profile Picture</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-2">
+                    <h6 class="card-title mb-0 fw-semibold">Profile Picture</h6>
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body text-center py-4">
                     <div class="mb-3">
                         @if (!string.IsNullOrEmpty(Model.ProfilePicture))
                         {
-                            <img src="@Model.ProfilePicture" alt="Profile Picture" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" />
+                            <img src="@Model.ProfilePicture" alt="Profile Picture" class="rounded-circle shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" />
                         }
                         else
                         {
-                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
-                                <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto shadow-sm" style="width: 120px; height: 120px;">
+                                <i class="bi bi-person-fill text-white" style="font-size: 2.5rem;"></i>
                             </div>
                         }
                     </div>
                     <form asp-action="UploadProfilePicture" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
-                            <input type="file" name="profilePicture" class="form-control" accept="image/*" />
+                            <input type="file" name="profilePicture" class="form-control form-control-sm" accept="image/*" />
                         </div>
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="bi bi-upload me-1"></i>Upload Picture
@@ -46,63 +45,61 @@
 
         <!-- User Information Section -->
         <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">User Information</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-2">
+                    <h6 class="card-title mb-0 fw-semibold">User Information</h6>
                 </div>
                 <div class="card-body">
                     <form asp-action="UpdateUserInfo" method="post">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">User ID</label>
-                                <input type="text" class="form-control" value="@Model.UserID" readonly />
+                                <label class="form-label small fw-semibold">User ID</label>
+                                <input type="text" class="form-control form-control-sm" value="@Model.UserID" readonly />
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">User Type</label>
-                                <input type="text" class="form-control" value="@Model.UserType" readonly />
+                                <label class="form-label small fw-semibold">User Type</label>
+                                <input type="text" class="form-control form-control-sm" value="@Model.UserType" readonly />
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" value="@Model.FullName" readonly />
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Full Name</label>
+                            <input type="text" class="form-control form-control-sm" value="@Model.FullName" readonly />
                         </div>
 
-                        <hr class="my-4" />
+                        <hr class="my-3" />
 
                         <!-- Editable Fields -->
                         <div class="mb-3">
-                            <label asp-for="Username" class="form-label">Username *</label>
-                            <input asp-for="Username" class="form-control" />
-                            <span asp-validation-for="Username" class="text-danger"></span>
+                            <label asp-for="Username" class="form-label small fw-semibold">Username *</label>
+                            <input asp-for="Username" class="form-control form-control-sm" />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label">Email *</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                            <label asp-for="Email" class="form-label small fw-semibold">Email *</label>
+                            <input asp-for="Email" class="form-control form-control-sm" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">New Password</label>
-                            <input type="password" name="NewPassword" class="form-control" placeholder="Leave blank to keep current password" />
+                            <label class="form-label small fw-semibold">New Password</label>
+                            <input type="password" name="NewPassword" class="form-control form-control-sm" placeholder="Leave blank to keep current password" />
                             <small class="text-muted">Password must be at least 6 characters long</small>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Confirm New Password</label>
-                            <input type="password" name="ConfirmPassword" class="form-control" placeholder="Confirm new password" />
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold">Confirm New Password</label>
+                            <input type="password" name="ConfirmPassword" class="form-control form-control-sm" placeholder="Confirm new password" />
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i>Update Information
-                            </button>
-                            <a href="@Url.Action("UserDashboard")" class="btn btn-outline-secondary">
+                            <a href="@Url.Action("UserDashboard")" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-x-circle me-1"></i>Cancel
                             </a>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-check-circle me-1"></i>Update Information
+                            </button>
                         </div>
                     </form>
                 </div>

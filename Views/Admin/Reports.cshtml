@@ -143,18 +143,6 @@
         </div>
     </div>
 
-    <!-- ========================= -->
-    <!-- BORROWING ACTIVITY TREND -->
-    <!-- ========================= -->
-    <div class="card shadow-sm border-0 mb-5">
-        <div class="card-header bg-primary text-white fw-bold">
-            Monthly Borrowing Activity
-        </div>
-        <div class="card-body">
-            <canvas id="borrowActivityChart"></canvas>
-        </div>
-    </div>
-
 </div>
 
 <!-- ========================= -->
@@ -191,25 +179,6 @@
                     label: 'Times Borrowed',
                     data: topData,
                     backgroundColor: '#007bff'
-                }]
-            },
-            options: { responsive: true }
-        });
-
-        // Borrowing Activity Trend
-        const activityLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowActivity.Keys));
-        const activityData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowActivity.Values));
-
-        new Chart(document.getElementById('borrowActivityChart'), {
-            type: 'line',
-            data: {
-                labels: activityLabels,
-                datasets: [{
-                    label: 'Borrow Count',
-                    data: activityData,
-                    borderColor: '#28a745',
-                    fill: false,
-                    tension: 0.3
                 }]
             },
             options: { responsive: true }

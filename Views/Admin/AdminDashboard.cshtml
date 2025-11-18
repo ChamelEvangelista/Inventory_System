@@ -27,106 +27,97 @@
 <div class="row g-4 mb-4">
     <!-- Pending Users Card -->
     <div class="col-xl col-lg-4 col-md-6">
-        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--warning);">
-            <div class="card-body text-center py-3">
-                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FFE89A 0%, var(--naples-yellow) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-users fa-lg" style="color: var(--yale-blue);"></i>
+        <a href="@Url.Action("ManageUsers", "Admin")" class="text-decoration-none">
+            <div class="card dashboard-card h-100 clickable-card" style="border-left: 5px solid var(--warning); transition: all 0.3s ease;">
+                <div class="card-body text-center py-3">
+                    <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FFE89A 0%, var(--naples-yellow) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-users fa-lg" style="color: var(--yale-blue);"></i>
+                    </div>
+                    <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.PendingUsers</h3>
+                    <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Pending Users</p>
+                    <small class="text-muted x-small">
+                        <i class="fas fa-clock me-1"></i>Awaiting approval
+                    </small>
                 </div>
-                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.PendingUsers</h3>
-                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Pending Users</p>
-                <small class="text-muted x-small">
-                    <i class="fas fa-clock me-1"></i>Awaiting approval
-                </small>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Total Items Card -->
     <div class="col-xl col-lg-4 col-md-6">
-        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--yale-blue);">
-            <div class="card-body text-center py-3">
-                <div class="card-icon mb-2" style="background: linear-gradient(135deg, var(--powder-blue) 0%, var(--medium-blue) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-boxes fa-lg text-white"></i>
+        <a href="@Url.Action("EquipmentList", "Admin")" class="text-decoration-none">
+            <div class="card dashboard-card h-100 clickable-card" style="border-left: 5px solid var(--yale-blue); transition: all 0.3s ease;">
+                <div class="card-body text-center py-3">
+                    <div class="card-icon mb-2" style="background: linear-gradient(135deg, var(--powder-blue) 0%, var(--medium-blue) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-boxes fa-lg text-white"></i>
+                    </div>
+                    <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.TotalEquipment</h3>
+                    <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Total Items</p>
+                    <small class="text-muted x-small">
+                        <i class="fas fa-tags me-1"></i>All inventory
+                    </small>
                 </div>
-                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.TotalEquipment</h3>
-                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Total Items</p>
-                <small class="text-muted x-small">
-                    <i class="fas fa-tags me-1"></i>All inventory
-                </small>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Borrowed Items Card -->
     <div class="col-xl col-lg-4 col-md-6">
-        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--info);">
-            <div class="card-body text-center py-3">
-                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #A3D8F7 0%, var(--info) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-hand-holding fa-lg text-white"></i>
+        <a href="@Url.Action("Reports", "Admin")" class="text-decoration-none">
+            <div class="card dashboard-card h-100 clickable-card" style="border-left: 5px solid var(--info); transition: all 0.3s ease;">
+                <div class="card-body text-center py-3">
+                    <div class="card-icon mb-2" style="background: linear-gradient(135deg, #A3D8F7 0%, var(--info) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-hand-holding fa-lg text-white"></i>
+                    </div>
+                    <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.BorrowedItems</h3>
+                    <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Borrowed Items</p>
+                    <small class="text-muted x-small">
+                        <i class="fas fa-arrow-circle-right me-1"></i>Currently in use
+                    </small>
                 </div>
-                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.BorrowedItems</h3>
-                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Borrowed Items</p>
-                <small class="text-muted x-small">
-                    <i class="fas fa-arrow-circle-right me-1"></i>Currently in use
-                </small>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Returned Items Card -->
     <div class="col-xl col-lg-4 col-md-6">
-        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--success);">
-            <div class="card-body text-center py-3">
-                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #7DCD9E 0%, var(--success) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-undo-alt fa-lg text-white"></i>
+        <a href="@Url.Action("Reports", "Admin")" class="text-decoration-none">
+            <div class="card dashboard-card h-100 clickable-card" style="border-left: 5px solid var(--success); transition: all 0.3s ease;">
+                <div class="card-body text-center py-3">
+                    <div class="card-icon mb-2" style="background: linear-gradient(135deg, #7DCD9E 0%, var(--success) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-undo-alt fa-lg text-white"></i>
+                    </div>
+                    <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.ReturnedItems</h3>
+                    <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Returned Items</p>
+                    <small class="text-muted x-small">
+                        <i class="fas fa-check-circle me-1"></i>Completed
+                    </small>
                 </div>
-                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.ReturnedItems</h3>
-                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Returned Items</p>
-                <small class="text-muted x-small">
-                    <i class="fas fa-check-circle me-1"></i>Completed
-                </small>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Out of Stock Items -->
     <div class="col-xl col-lg-4 col-md-6">
-        <div class="card dashboard-card h-100" style="border-left: 5px solid var(--danger);">
-            <div class="card-body text-center py-3">
-                <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FF9999 0%, var(--danger) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-                    <i class="fas fa-exclamation-triangle fa-lg text-white"></i>
+        <a href="@Url.Action("Reports", "Admin")" class="text-decoration-none">
+            <div class="card dashboard-card h-100 clickable-card" style="border-left: 5px solid var(--danger); transition: all 0.3s ease;">
+                <div class="card-body text-center py-3">
+                    <div class="card-icon mb-2" style="background: linear-gradient(135deg, #FF9999 0%, var(--danger) 100%); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-exclamation-triangle fa-lg text-white"></i>
+                    </div>
+                    <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.OutOfStockItems</h3>
+                    <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Out of Stock</p>
+                    <small class="text-muted x-small">
+                        <i class="fas fa-times-circle me-1"></i>Need restock
+                    </small>
                 </div>
-                <h3 class="mb-1" style="color: var(--yale-blue);">@ViewBag.OutOfStockItems</h3>
-                <p class="mb-0 fw-bold small" style="color: var(--text-dark);">Out of Stock</p>
-                <small class="text-muted x-small">
-                    <i class="fas fa-times-circle me-1"></i>Need restock
-                </small>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
-<!-- 🟨 2. EQUIPMENT DISTRIBUTION CHART (Full Width) -->
+<!-- 🟩 2. RECENT ACTIVITY FEED & 🟥 3. ALERTS -->
 <div class="row g-4 mb-4">
-    <!-- Item Distribution Chart by Type -->
-    <div class="col-12">
-        <div class="card shadow-custom">
-            <div class="card-header" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border-bottom: 3px solid var(--naples-yellow);">
-                <h5 class="mb-0 text-white">
-                    <i class="fas fa-chart-pie me-2"></i>Equipment Distribution by Type
-                </h5>
-            </div>
-            <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 400px;">
-                <div style="position: relative; height: 350px; width: 100%; max-width: 500px;">
-                    <canvas id="equipmentDistributionChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 🟩 3. RECENT ACTIVITY FEED & 🟥 4. ALERTS -->
-<div class="row g-4">
     <!-- Recent Activity Feed -->
     <div class="col-xl-6 col-lg-6">
         <div class="card shadow-custom">
@@ -136,32 +127,24 @@
                 </h5>
             </div>
             <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                @if (ViewBag.RecentBorrowRecords != null && ViewBag.RecentBorrowRecords.Count > 0)
+                @if (ViewBag.RecentActivities != null && ViewBag.RecentActivities.Count > 0)
                 {
-                    @foreach (var record in ViewBag.RecentBorrowRecords)
+                    var activityCount = 0;
+                    @foreach (var activity in ViewBag.RecentActivities)
                     {
-                        var borderColor = record.Status == "Borrowed" ? "var(--info)" : "var(--success)";
-                        var iconClass = record.Status == "Borrowed" ? "fa-hand-holding" : "fa-undo-alt";
-                        var iconColor = record.Status == "Borrowed" ? "text-info" : "text-success";
-                        var timeAgo = (DateTime.Now - record.BorrowDate).Days == 0 ? "Today" : $"{(DateTime.Now - record.BorrowDate).Days} days ago";
+                        if (activityCount >= 5) { break; }
+                        activityCount++;
 
-                        <div class="activity-item mb-3 p-3 rounded" style="background-color: var(--alice-blue); border-left: 4px solid @borderColor;">
+                        <div class="activity-item mb-3 p-3 rounded" style="background-color: var(--alice-blue); border-left: 4px solid @GetActivityBorderColor(activity);">
                             <div class="d-flex align-items-center mb-2">
-                                <i class="fas @iconClass @iconColor me-2"></i>
-                                <strong class="me-2">@(record.Status == "Borrowed" ? "Equipment Borrowed" : "Equipment Returned")</strong>
-                                <small class="text-muted ms-auto">@timeAgo</small>
+                                <i class="fas @GetActivityIcon(activity) @GetActivityIconColor(activity) me-2"></i>
+                                <strong class="me-2">@activity.Title</strong>
+                                <small class="text-muted ms-auto">@GetTimeAgo(activity.Timestamp)</small>
                             </div>
-                            <p class="mb-1 small">@record.UserName @(record.Status == "Borrowed" ? "borrowed" : "returned") <strong>@record.EquipmentName</strong></p>
-                            @if (record.Status == "Borrowed")
+                            <p class="mb-1 small">@activity.Description</p>
+                            @if (!string.IsNullOrEmpty(activity.Details))
                             {
-                                <small class="text-muted">Purpose: @record.Purpose</small>
-                            }
-                            else
-                            {
-                                var isOnTime = record.ReturnDate <= record.ExpectedReturnDate;
-                                <small class="@(isOnTime ? "text-success" : "text-danger")">
-                                    @(isOnTime ? "✓ On time" : "⚠ Late return")
-                                </small>
+                                <small class="text-muted">@activity.Details</small>
                             }
                         </div>
                     }
@@ -172,25 +155,6 @@
                         <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
                         <p>No recent activity to display</p>
                     </div>
-                }
-
-                @* Recent User Registrations *@
-                @if (ViewBag.RecentUsers != null && ViewBag.RecentUsers.Count > 0)
-                {
-                    @foreach (var user in ViewBag.RecentUsers)
-                    {
-                        <div class="activity-item mb-3 p-3 rounded" style="background-color: var(--alice-blue); border-left: 4px solid var(--warning);">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-user-plus text-warning me-2"></i>
-                                <strong class="me-2">New User Registration</strong>
-                                <small class="text-muted ms-auto">Recently</small>
-                            </div>
-                            <p class="mb-1 small"><strong>@user.FullName</strong> registered as @user.UserType</p>
-                            <small class="@(user.Status == "Pending" ? "text-warning" : user.Status == "Active" ? "text-success" : "text-danger")">
-                                @(user.Status == "Pending" ? "⏳ Pending approval" : user.Status == "Active" ? "✓ Approved" : "✗ Rejected")
-                            </small>
-                        </div>
-                    }
                 }
             </div>
         </div>
@@ -278,9 +242,103 @@
     </div>
 </div>
 
+<!-- 🟨 4. EQUIPMENT DISTRIBUTION CHART (Full Width - Moved to Bottom) -->
+<div class="row g-4">
+    <!-- Item Distribution Chart by Type -->
+    <div class="col-12">
+        <div class="card shadow-custom">
+            <div class="card-header" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border-bottom: 3px solid var(--naples-yellow);">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-chart-pie me-2"></i>Equipment Distribution by Type
+                </h5>
+            </div>
+            <div class="card-body d-flex justify-content-center align-items-center" style="min-height: 400px;">
+                <div style="position: relative; height: 350px; width: 100%; max-width: 500px;">
+                    <canvas id="equipmentDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    // Helper functions for recent activities
+    public string GetActivityBorderColor(dynamic activity)
+    {
+        switch (activity.Type)
+        {
+            case "UserApproval": return "var(--success)";
+            case "EquipmentAdded": return "var(--info)";
+            case "EquipmentUpdated": return "var(--warning)";
+            case "UserRegistration": return "var(--warning)";
+            case "Borrowed": return "var(--info)";
+            case "Returned": return "var(--success)";
+            default: return "var(--secondary)";
+        }
+    }
+
+    public string GetActivityIcon(dynamic activity)
+    {
+        switch (activity.Type)
+        {
+            case "UserApproval": return "fa-user-check";
+            case "EquipmentAdded": return "fa-plus-circle";
+            case "EquipmentUpdated": return "fa-edit";
+            case "UserRegistration": return "fa-user-plus";
+            case "Borrowed": return "fa-hand-holding";
+            case "Returned": return "fa-undo-alt";
+            default: return "fa-circle";
+        }
+    }
+
+    public string GetActivityIconColor(dynamic activity)
+    {
+        switch (activity.Type)
+        {
+            case "UserApproval": return "text-success";
+            case "EquipmentAdded": return "text-info";
+            case "EquipmentUpdated": return "text-warning";
+            case "UserRegistration": return "text-warning";
+            case "Borrowed": return "text-info";
+            case "Returned": return "text-success";
+            default: return "text-secondary";
+        }
+    }
+
+    public string GetTimeAgo(DateTime timestamp)
+    {
+        var timeSpan = DateTime.Now - timestamp;
+        if (timeSpan.TotalMinutes < 1)
+            return "Just now";
+        if (timeSpan.TotalHours < 1)
+            return $"{(int)timeSpan.TotalMinutes}m ago";
+        if (timeSpan.TotalDays < 1)
+            return $"{(int)timeSpan.TotalHours}h ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays}d ago";
+        return timestamp.ToString("MMM dd, yyyy");
+    }
+}
+
 @section Scripts {
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+    <style>
+        .clickable-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .clickable-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            }
+
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+    </style>
 
     <script>
         // Update Date and Time

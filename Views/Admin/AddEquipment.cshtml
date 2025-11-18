@@ -5,72 +5,214 @@
     ViewData["ActivePage"] = "ManageEquipment";
 }
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
     <div class="col-lg-8 mx-auto">
         <div class="card border-0 shadow-sm" style="border-radius: 15px; border: 2px solid var(--powder-blue);">
             <div class="card-header text-white py-3"
                  style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%);">
-                <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Item</h5>
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Equipment Item</h5>
             </div>
-
             <div class="card-body p-4">
-                <form asp-action="AddEquipment" method="post">
+                <form asp-action="AddEquipment" method="post" enctype="multipart/form-data">
                     @Html.AntiForgeryToken()
 
-                    <div class="mb-3">
-                        <label asp-for="Name" class="form-label fw-bold"><i class="fas fa-tag me-2"></i>Name</label>
-                        <input asp-for="Name" class="form-control" required />
+                    <div class="row">
+                        <!-- Left Column - Image Upload -->
+                        <div class="col-md-4 mb-4">
+                            <label class="form-label fw-bold" style="color: var(--yale-blue);">
+                                <i class="fas fa-image me-2"></i>Equipment Image
+                            </label>
+
+                            <!-- Image Preview Container -->
+                            <div class="position-relative mb-3"
+                                 style="border: 2px dashed var(--powder-blue); border-radius: 12px; background-color: var(--alice-blue); height: 250px; overflow: hidden;">
+                                <img id="imagePreview"
+                                     src="~/images/equipment/no-image.png"
+                                     alt="Preview"
+                                     class="w-100 h-100"
+                                     style="object-fit: contain; display: block;" />
+
+                                <!-- Upload Icon Overlay (shown when no image) -->
+                                <div id="uploadPlaceholder"
+                                     class="position-absolute top-50 start-50 translate-middle text-center"
+                                     style="pointer-events: none;">
+                                    <i class="fas fa-cloud-upload-alt fa-3x mb-2" style="color: var(--powder-blue); opacity: 0.5;"></i>
+                                    <p class="text-muted small mb-0">Click "Choose File" to upload</p>
+                                </div>
+                            </div>
+
+                            <!-- File Input -->
+                            <input type="file"
+                                   name="ImageFile"
+                                   id="imageFile"
+                                   class="form-control"
+                                   accept="image/*"
+                                   style="border: 2px solid var(--powder-blue);" />
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Supported: JPG, PNG, GIF (Max 5MB)
+                            </small>
+                        </div>
+
+                        <!-- Right Column - Equipment Details -->
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label asp-for="Name" class="form-label fw-bold" style="color: var(--yale-blue);">
+                                    <i class="fas fa-tag me-2"></i>Equipment Name
+                                </label>
+                                <input asp-for="Name"
+                                       class="form-control"
+                                       placeholder="Enter equipment name"
+                                       style="border: 2px solid var(--powder-blue);"
+                                       required />
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label fw-bold" style="color: var(--yale-blue);">
+                                    <i class="fas fa-align-left me-2"></i>Description
+                                </label>
+                                <textarea asp-for="Description"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Enter equipment description"
+                                          style="border: 2px solid var(--powder-blue);"
+                                          required></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Type" class="form-label fw-bold" style="color: var(--yale-blue);">
+                                        <i class="fas fa-cube me-2"></i>Type
+                                    </label>
+                                    <select asp-for="Type"
+                                            class="form-select"
+                                            style="border: 2px solid var(--powder-blue);"
+                                            required>
+                                        <option value="">-- Select Type --</option>
+                                        @foreach (var type in ViewBag.Types as string[])
+                                        {
+                                            <option value="@type">@type</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Type" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Label" class="form-label fw-bold" style="color: var(--yale-blue);">
+                                        <i class="fas fa-bookmark me-2"></i>Label
+                                    </label>
+                                    <select asp-for="Label"
+                                            class="form-select"
+                                            style="border: 2px solid var(--powder-blue);"
+                                            required>
+                                        <option value="">-- Select Label --</option>
+                                        @foreach (var lbl in ViewBag.Labels as string[])
+                                        {
+                                            <option value="@lbl">@lbl</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Label" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Quantity" class="form-label fw-bold" style="color: var(--yale-blue);">
+                                    <i class="fas fa-boxes me-2"></i>Initial Quantity
+                                </label>
+                                <input asp-for="Quantity"
+                                       type="number"
+                                       min="0"
+                                       class="form-control"
+                                       placeholder="Enter quantity"
+                                       style="border: 2px solid var(--powder-blue);"
+                                       required />
+                                <span asp-validation-for="Quantity" class="text-danger small"></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Description" class="form-label fw-bold"><i class="fas fa-align-left me-2"></i>Description</label>
-                        <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Category" class="form-label fw-bold"><i class="fas fa-list me-2"></i>Category</label>
-                        <select asp-for="Category" class="form-select" required>
-                            <option value="">-- Select Category --</option>
-                            @foreach (var cat in ViewBag.Categories as string[])
-                            {
-                                <option value="@cat">@cat</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Type" class="form-label fw-bold"><i class="fas fa-cube me-2"></i>Type</label>
-                        <select asp-for="Type" class="form-select" required>
-                            <option value="">-- Select Type --</option>
-                            @foreach (var type in ViewBag.Types as string[])
-                            {
-                                <option value="@type">@type</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Label" class="form-label fw-bold"><i class="fas fa-tag me-2"></i>Label</label>
-                        <select asp-for="Label" class="form-select" required>
-                            <option value="">-- Select Label --</option>
-                            @foreach (var lbl in ViewBag.Labels as string[])
-                            {
-                                <option value="@lbl">@lbl</option>
-                            }
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Quantity" class="form-label fw-bold"><i class="fas fa-boxes me-2"></i>Quantity</label>
-                        <input asp-for="Quantity" type="number" min="1" class="form-control" required />
-                    </div>
-
-                    <div class="text-end">
-                        <a asp-action="ManageEquipment" class="btn btn-secondary me-2"><i class="fas fa-times me-1"></i>Cancel</a>
-                        <button type="submit" class="btn btn-success"><i class="fas fa-check-circle me-1"></i>Add Item</button>
+                    <!-- Action Buttons -->
+                    <div class="border-top pt-4 mt-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a asp-action="ManageEquipment"
+                               class="btn btn-outline-secondary px-4"
+                               style="border: 2px solid var(--powder-blue); color: var(--yale-blue);">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit"
+                                    class="btn btn-primary px-4"
+                                    style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); border: none;">
+                                <i class="fas fa-plus-circle me-2"></i>Add Equipment
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Image Preview Functionality
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+
+            if (file) {
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    this.value = '';
+                    return;
+                }
+
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    alert('Please select an image file');
+                    this.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.objectFit = 'cover';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '/images/equipment/no-image.png';
+                preview.style.objectFit = 'contain';
+                placeholder.style.display = 'block';
+            }
+        });
+
+        // Form validation enhancement
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Please fill in all required fields');
+            }
+        });
+    </script>
+}

@@ -33,6 +33,23 @@
         </div>
     </div>
 
+    <!-- Alert Notification - Moved to Top -->
+    @if (Model.Any(u => u.Status == "Pending"))
+    {
+        <div class="alert mb-4 p-4" style="background: linear-gradient(135deg, var(--soft-cream) 0%, var(--alice-blue) 100%); border-left: 4px solid var(--naples-yellow); border-radius: 10px;">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-lightbulb fa-2x me-3" style="color: var(--warning);"></i>
+                <div>
+                    <h6 class="fw-bold mb-2" style="color: var(--yale-blue);">Action Required</h6>
+                    <p class="mb-0 text-muted">
+                        You have <strong style="color: var(--warning);">@Model.Count(u => u.Status == "Pending") pending user(s)</strong> waiting for approval.
+                        Review their accounts and approve or reject them to allow system access. Approved users will be able to log in and start borrowing equipment.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- Users Table Card -->
     <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden; border: 2px solid var(--powder-blue);">
         <div class="card-header text-white border-0 py-3" style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%); border-bottom: 3px solid var(--naples-yellow);">
@@ -40,7 +57,6 @@
                 <h5 class="card-title mb-0">
                     <i class="fas fa-list me-2"></i>User Accounts
                 </h5>
-                <!-- Optional: Add search or filter functionality here in future -->
                 <small class="opacity-75">
                     <i class="fas fa-user-check me-1"></i>
                     @Model.Count(u => u.Status == "Active") Active Users
@@ -49,28 +65,28 @@
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0" style="min-width: 100%;">
                     <thead style="background-color: var(--yale-blue);">
                         <tr>
-                            <th class="text-black border-0 py-3 ps-4">
+                            <th class="text-black border-0 py-3 ps-4" style="width: 5%;">
                                 <i class="fas fa-hashtag me-1"></i>ID
                             </th>
-                            <th class="text-black border-0 py-3">
+                            <th class="text-black border-0 py-3" style="width: 18%;">
                                 <i class="fas fa-user me-1"></i>FULL NAME
                             </th>
-                            <th class="text-black border-0 py-3">
+                            <th class="text-black border-0 py-3" style="width: 12%;">
                                 <i class="fas fa-at me-1"></i>USERNAME
                             </th>
-                            <th class="text-black border-0 py-3">
+                            <th class="text-black border-0 py-3" style="width: 10%;">
                                 <i class="fas fa-shield-alt me-1"></i>ROLE
                             </th>
-                            <th class="text-black border-0 py-3">
+                            <th class="text-black border-0 py-3" style="width: 12%;">
                                 <i class="fas fa-graduation-cap me-1"></i>USER TYPE
                             </th>
-                            <th class="text-black border-0 py-3">
+                            <th class="text-black border-0 py-3" style="width: 10%;">
                                 <i class="fas fa-toggle-on me-1"></i>STATUS
                             </th>
-                            <th class="text-black border-0 py-3 text-center">
+                            <th class="text-black border-0 py-3 text-center" style="width: 25%;">
                                 <i class="fas fa-cogs me-1"></i>ACTIONS
                             </th>
                         </tr>
@@ -85,27 +101,27 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="rounded-circle d-flex align-items-center justify-content-center me-2"
-                                             style="width: 35px; height: 35px; background: linear-gradient(135deg, var(--powder-blue) 0%, var(--medium-blue) 100%); color: white; font-weight: bold;">
+                                             style="width: 35px; height: 35px; background: linear-gradient(135deg, var(--powder-blue) 0%, var(--medium-blue) 100%); color: white; font-weight: bold; flex-shrink: 0;">
                                             @user.FullName.Substring(0, 1).ToUpper()
                                         </div>
-                                        <span class="fw-semibold">@user.FullName</span>
+                                        <span class="fw-semibold text-nowrap">@user.FullName</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <span style="color: var(--text-dark);">@user.Username</span>
+                                    <span style="color: var(--text-dark);" class="text-nowrap">@user.Username</span>
                                 </td>
                                 <td>
                                     @if (user.Role == "Admin")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2"
-                                              style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%); color: white;">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap"
+                                              style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--deep-navy) 100%); color: white; font-size: 0.75rem;">
                                             <i class="fas fa-crown me-1"></i>@user.Role
                                         </span>
                                     }
                                     else
                                     {
-                                        <span class="badge rounded-pill px-3 py-2"
-                                              style="background-color: var(--powder-blue); color: var(--yale-blue);">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap"
+                                              style="background-color: var(--powder-blue); color: var(--yale-blue); font-size: 0.75rem;">
                                             <i class="fas fa-user me-1"></i>@user.Role
                                         </span>
                                     }
@@ -113,13 +129,13 @@
                                 <td>
                                     @if (user.UserType == "Instructor")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: #E8F4F8; color: var(--medium-blue); border: 1px solid var(--powder-blue);">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap" style="background-color: #E8F4F8; color: var(--medium-blue); border: 1px solid var(--powder-blue); font-size: 0.75rem;">
                                             <i class="fas fa-chalkboard-teacher me-1"></i>Instructor
                                         </span>
                                     }
                                     else if (user.UserType == "Student")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: #F0F7FF; color: var(--yale-blue); border: 1px solid var(--powder-blue);">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap" style="background-color: #F0F7FF; color: var(--yale-blue); border: 1px solid var(--powder-blue); font-size: 0.75rem;">
                                             <i class="fas fa-user-graduate me-1"></i>Student
                                         </span>
                                     }
@@ -131,65 +147,57 @@
                                 <td>
                                     @if (user.Status == "Active")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: var(--success); color: white;">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap" style="background-color: var(--success); color: white; font-size: 0.75rem;">
                                             <i class="fas fa-check-circle me-1"></i>Active
                                         </span>
                                     }
                                     else if (user.Status == "Pending")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: var(--warning); color: white;">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap" style="background-color: var(--warning); color: white; font-size: 0.75rem;">
                                             <i class="fas fa-clock me-1"></i>Pending
                                         </span>
                                     }
                                     else if (user.Status == "Rejected")
                                     {
-                                        <span class="badge rounded-pill px-3 py-2" style="background-color: var(--danger); color: white;">
+                                        <span class="badge rounded-pill px-2 py-1 text-nowrap" style="background-color: var(--danger); color: white; font-size: 0.75rem;">
                                             <i class="fas fa-times-circle me-1"></i>Rejected
                                         </span>
                                     }
                                 </td>
                                 <td>
-                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <div class="d-flex justify-content-center gap-1">
                                         @if (user.Status == "Pending")
                                         {
                                             <!-- Approve Button -->
                                             <a asp-action="ApproveUser" asp-route-id="@user.UserID"
-                                               class="btn btn-sm d-flex align-items-center"
-                                               style="background-color: var(--success); color: white; border: none; font-weight: 600;"
+                                               class="btn btn-sm px-2 py-1"
+                                               style="background-color: var(--success); color: white; border: none; font-size: 0.8rem; white-space: nowrap;"
                                                title="Approve this user account">
-                                                <i class="fas fa-check me-1"></i>Approve
+                                                <i class="fas fa-check"></i> Approve
                                             </a>
                                             <!-- Reject Button -->
                                             <a asp-action="RejectUser" asp-route-id="@user.UserID"
-                                               class="btn btn-sm d-flex align-items-center"
-                                               style="background-color: var(--danger); color: white; border: none; font-weight: 600;"
+                                               class="btn btn-sm px-2 py-1"
+                                               style="background-color: var(--danger); color: white; border: none; font-size: 0.8rem; white-space: nowrap;"
                                                title="Reject this user account">
-                                                <i class="fas fa-times me-1"></i>Reject
+                                                <i class="fas fa-times"></i> Reject
                                             </a>
                                         }
                                         else
                                         {
-                                            <span class="badge px-3 py-2 d-flex align-items-center"
-                                                  style="background-color: var(--alice-blue); color: var(--success); border: 1px solid var(--success);">
+                                            <span class="badge px-2 py-1"
+                                                  style="background-color: var(--alice-blue); color: var(--success); border: 1px solid var(--success); font-size: 0.75rem;">
                                                 <i class="fas fa-check me-1"></i>Processed
                                             </span>
                                         }
 
-                                        <!-- Edit Button (always visible) -->
-                                        <a asp-action="EditUser" asp-route-id="@user.UserID"
-                                           class="btn btn-sm d-flex align-items-center"
-                                           style="background-color: var(--warning); color: white; border: none; font-weight: 600;"
-                                           title="Edit user details">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </a>
-
                                         <!-- Delete Button (always visible) -->
                                         <a asp-action="DeleteUser" asp-route-id="@user.UserID"
-                                           class="btn btn-sm d-flex align-items-center"
-                                           style="background-color: transparent; color: var(--danger); border: 2px solid var(--danger); font-weight: 600;"
+                                           class="btn btn-sm px-2 py-1"
+                                           style="background-color: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 0.8rem; white-space: nowrap;"
                                            onclick="return confirm('Are you sure you want to delete user: @user.FullName? This action cannot be undone.');"
                                            title="Delete user permanently">
-                                            <i class="fas fa-trash me-1"></i>Delete
+                                            <i class="fas fa-trash"></i> Delete
                                         </a>
                                     </div>
                                 </td>
@@ -216,23 +224,6 @@
             </p>
         </div>
     }
-
-    <!-- Help Section -->
-    @if (Model.Any(u => u.Status == "Pending"))
-    {
-        <div class="alert mt-4 p-4" style="background: linear-gradient(135deg, var(--soft-cream) 0%, var(--alice-blue) 100%); border-left: 4px solid var(--naples-yellow); border-radius: 10px;">
-            <div class="d-flex align-items-start">
-                <i class="fas fa-lightbulb fa-2x me-3" style="color: var(--warning);"></i>
-                <div>
-                    <h6 class="fw-bold mb-2" style="color: var(--yale-blue);">Action Required</h6>
-                    <p class="mb-0 text-muted">
-                        You have <strong style="color: var(--warning);">@Model.Count(u => u.Status == "Pending") pending user(s)</strong> waiting for approval.
-                        Review their accounts and approve or reject them to allow system access. Approved users will be able to log in and start borrowing equipment.
-                    </p>
-                </div>
-            </div>
-        </div>
-    }
 </div>
 
 @section Scripts {
@@ -243,7 +234,7 @@
             tableRows.forEach(row => {
                 row.addEventListener('mouseenter', function() {
                     this.style.backgroundColor = 'var(--alice-blue)';
-                    this.style.transform = 'scale(1.01)';
+                    this.style.transform = 'scale(1.005)';
                 });
 
                 row.addEventListener('mouseleave', function() {
@@ -252,19 +243,31 @@
                 });
             });
 
-            // Add smooth confirmation for delete actions
+            // Add smooth hover effect for action buttons
+            const actionButtons = document.querySelectorAll('.btn-sm');
+            actionButtons.forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                });
+
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+
+            // Enhanced delete button hover effect
             const deleteButtons = document.querySelectorAll('a[onclick*="confirm"]');
             deleteButtons.forEach(btn => {
                 btn.addEventListener('mouseenter', function() {
                     this.style.backgroundColor = 'var(--danger)';
                     this.style.color = 'white';
-                    this.style.transform = 'translateY(-2px)';
                 });
 
                 btn.addEventListener('mouseleave', function() {
                     this.style.backgroundColor = 'transparent';
                     this.style.color = 'var(--danger)';
-                    this.style.transform = 'translateY(0)';
                 });
             });
         });
