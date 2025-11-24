@@ -295,7 +295,7 @@ namespace Inventory_System.Controllers
             return View(equipmentList.ToList());
         }
 
-        public IActionResult EquipmentList(string searchTerm, string categoryFilter, string typeFilter, string labelFilter, string statusFilter)
+        public IActionResult EquipmentList(string searchTerm, string typeFilter, string labelFilter, string statusFilter)
         {
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
@@ -314,13 +314,22 @@ namespace Inventory_System.Controllers
             ViewBag.Types = _context.Equipment.Select(e => e.Type).Distinct().ToList();
             ViewBag.Labels = _context.Equipment.Select(e => e.Label).Distinct().ToList();
 
-            ViewBag.ActiveFilter = new { Search = searchTerm, Category = categoryFilter, Type = typeFilter, Label = labelFilter, Status = statusFilter };
+            ViewBag.ActiveFilter = new { Search = searchTerm, Type = typeFilter, Label = labelFilter, Status = statusFilter };
+
+            // Get active borrow records to determine borrowed equipment
+            var activeBorrowRecords = _context.BorrowRecords
+                .Where(b => b.Status == "Borrowed")
+                .Select(b => b.EquipmentID)
+                .Distinct()
+                .ToList();
+
+            ViewBag.ActiveBorrowRecords = activeBorrowRecords;
 
             return View(query.ToList());
         }
 
         [HttpGet]
-        public IActionResult AddEquipment()
+        public IActionResult AddEquipment()//MAO NI ANG CRUD(CREATE NI)
         {
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
@@ -408,11 +417,39 @@ namespace Inventory_System.Controllers
         [HttpGet]
         public IActionResult EditEquipment(int id)
         {
-            var item = _context.Equipment.Find(id);
-            if (item == null) return NotFound();
+            // Check if ID is valid
+            if (id <= 0)
+            {
+                TempData["ErrorMessage"] = "Invalid equipment ID.";
+                return RedirectToAction("EquipmentList");
+            }
 
-            LoadDropdowns();
-            return View(item);
+            // Get equipment from database
+            var equipment = _context.Equipment
+                .FirstOrDefault(e => e.EquipmentID == id);
+
+            // Check if equipment exists
+            if (equipment == null)
+            {
+                TempData["ErrorMessage"] = "Equipment not found.";
+                return RedirectToAction("EquipmentList");
+            }
+
+            // Populate ViewBag with required data
+            ViewBag.Types = new string[]
+            {
+        "Office Supplies",
+        "Cleaning Supplies",
+        "ICT Equipment",
+        "Office Equipment",
+        "Audio-Visual Equipment",
+        "Sports Equipment",
+        "Maintenance Tools"
+            };
+
+            ViewBag.Labels = new string[] { "Borrowable", "Non-Borrowable" };
+
+            return View(equipment);
         }
 
         // UPDATED EDIT EQUIPMENT WITH IMAGE UPLOAD
@@ -512,7 +549,6 @@ namespace Inventory_System.Controllers
             }
         }
 
-        // Add this method to your AdminController
         [HttpGet]
         public IActionResult GetEquipmentUpdates()
         {
@@ -520,9 +556,16 @@ namespace Inventory_System.Controllers
             {
                 var equipment = _context.Equipment.ToList();
 
+                // Get all active borrow records to determine which equipment is currently borrowed
+                var activeBorrowRecords = _context.BorrowRecords
+                    .Where(b => b.Status == "Borrowed")
+                    .GroupBy(b => b.EquipmentID)
+                    .Select(g => new { EquipmentID = g.Key, BorrowedCount = g.Count() })
+                    .ToList();
+
                 // Calculate counters based on the new logic
                 int availableCount = equipment.Count(e => e.Quantity > 0 && e.Label == "Borrowable");
-                int borrowedCount = _context.BorrowRecords.Count(b => b.Status == "Borrowed");
+                int borrowedCount = activeBorrowRecords.Count; // Count of equipment with active borrows
                 int outOfStockCount = equipment.Count(e => e.Quantity == 0);
 
                 var equipmentData = equipment.Select(e => new
@@ -530,7 +573,8 @@ namespace Inventory_System.Controllers
                     equipmentID = e.EquipmentID,
                     quantity = e.Quantity,
                     status = e.Status,
-                    label = e.Label
+                    label = e.Label,
+                    isBorrowed = activeBorrowRecords.Any(b => b.EquipmentID == e.EquipmentID) // Add this flag
                 }).ToList();
 
                 return Json(new
@@ -593,63 +637,74 @@ namespace Inventory_System.Controllers
             if (HttpContext.Session.GetString("Role") != "Admin")
                 return RedirectToAction("AccessDenied", "Account");
 
-            // Summary statistics
+            // Summary statistics - FIXED LOGIC
             var totalEquipment = _context.Equipment.Count();
-            var availableEquipment = _context.Equipment.Count(e => e.Status == "Available");
+
+            // Available equipment: items with quantity > 0
+            var availableEquipment = _context.Equipment.Count(e => e.Quantity > 0);
+
+            // Borrowed equipment: count of active borrow records
             var borrowedEquipment = _context.BorrowRecords.Count(b => b.Status == "Borrowed");
+
+            // Overdue equipment: borrowed items past expected return date
             var overdueEquipment = _context.BorrowRecords
                 .Count(b => b.Status == "Borrowed" && b.ExpectedReturnDate < DateTime.Now);
 
             var activeUsers = _context.Users.Count(u => u.Status == "Active");
             var pendingUsers = _context.Users.Count(u => u.Status == "Pending");
 
-            // Borrowed items grouped by user type
-            var borrowedByUserType = _context.BorrowRecords
-                .Where(b => b.Status == "Borrowed")
-                .GroupBy(b => b.User.UserType)
-                .Select(g => new { UserType = g.Key, Count = g.Count() })
-                .ToList();
+            // NEW: Equipment Quantity by Type (for bar chart)
+            var equipmentByType = _context.Equipment
+                .GroupBy(e => e.Type)
+                .Select(g => new { Type = g.Key, TotalQuantity = g.Sum(e => e.Quantity) })
+                .ToDictionary(x => x.Type ?? "Unknown", x => x.TotalQuantity);
 
-            // Top 5 most borrowed equipment
+            // FIXED: Top 5 most borrowed equipment - count by borrow records, not quantity
             var topBorrowedEquipment = _context.BorrowRecords
+                .Include(b => b.Equipment)
                 .GroupBy(b => b.Equipment.Name)
-                .Select(g => new { EquipmentName = g.Key, TotalBorrowed = g.Sum(b => b.Quantity) })
-                .OrderByDescending(x => x.TotalBorrowed)
+                .Select(g => new {
+                    EquipmentName = g.Key,
+                    TimesBorrowed = g.Count()  // Count how many times it was borrowed
+                })
+                .OrderByDescending(x => x.TimesBorrowed)
                 .Take(5)
+                .ToDictionary(x => x.EquipmentName ?? "Unknown Equipment", x => x.TimesBorrowed);
+
+            // NEW: Recent borrowing records (instead of overdue)
+            var borrowingRecords = _context.BorrowRecords
+                .Include(b => b.User)
+                .Include(b => b.Equipment)
+                .OrderByDescending(b => b.BorrowDate)
+                .Take(20) // Show last 20 records
+                .Select(b => new BorrowingRecordVM
+                {
+                    BorrowID = b.BorrowID,
+                    Borrower = b.User != null ? b.User.FullName : "Unknown User",
+                    Equipment = b.Equipment != null ? b.Equipment.Name : "Unknown Equipment",
+                    Quantity = b.Quantity,
+                    BorrowDate = b.BorrowDate,
+                    ReturnDate = b.ReturnDate,
+                    Status = b.Status
+                })
                 .ToList();
 
-            // =============================
-            // FIXED OVERDUE RECORDS SECTION
-            // =============================
+            // Keep overdue records for the card counter, but don't display the table
             var overdueRecords = _context.BorrowRecords
                 .Where(b => b.Status == "Borrowed" && b.ExpectedReturnDate < DateTime.Now)
-                .AsEnumerable() // Required to avoid SQL coercion errors
-                .Select(b => new
+                .AsEnumerable()
+                .Select(b => new OverdueRecordVM
                 {
-                    b.BorrowID,
+                    BorrowID = b.BorrowID,
                     Borrower = b.User != null ? b.User.FullName : "Unknown User",
-                    EquipmentName = b.Equipment != null ? b.Equipment.Name : "Unknown Equipment",
-                    b.BorrowDate,
-                    b.ExpectedReturnDate,
+                    Equipment = b.Equipment != null ? b.Equipment.Name : "Unknown Equipment",
+                    BorrowDate = b.BorrowDate,
+                    ExpectedReturn = b.ExpectedReturnDate,
                     DaysOverdue = (DateTime.Now - b.ExpectedReturnDate).Days
                 })
                 .ToList();
 
-            // Monthly borrowing activity
-            var borrowActivity = _context.BorrowRecords
-                .AsEnumerable()
-                .GroupBy(b => new { b.BorrowDate.Year, b.BorrowDate.Month })
-                .Select(g => new
-                {
-                    Month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Month)
-                .ToList();
-
-            // =============================
-            // BUILDING THE VIEW MODEL
-            // =============================
+            // Building the View Model
             var viewModel = new ReportViewModel
             {
                 TotalEquipment = totalEquipment,
@@ -659,21 +714,12 @@ namespace Inventory_System.Controllers
                 ActiveUsers = activeUsers,
                 PendingUsers = pendingUsers,
 
-                BorrowedByUserType = borrowedByUserType
-                    .ToDictionary(x => x.UserType ?? "Unknown", x => x.Count),
+                EquipmentByType = equipmentByType,
 
-                TopBorrowedEquipment = topBorrowedEquipment
-                    .ToDictionary(x => x.EquipmentName, x => x.TotalBorrowed),
+                TopBorrowedEquipment = topBorrowedEquipment,
 
-                OverdueRecords = overdueRecords.Select(o => new OverdueRecordVM
-                {
-                    BorrowID = o.BorrowID,
-                    Borrower = o.Borrower,
-                    Equipment = o.EquipmentName,
-                    BorrowDate = o.BorrowDate,
-                    ExpectedReturn = o.ExpectedReturnDate,
-                    DaysOverdue = o.DaysOverdue
-                }).ToList(),
+                BorrowingRecords = borrowingRecords,
+                OverdueRecords = overdueRecords
             };
 
             return View(viewModel);
@@ -755,9 +801,8 @@ namespace Inventory_System.Controllers
             }
         }
 
-
         // =========================
-        // ADMIN PROFILE
+        // ADMIN PROFILE - UPDATED
         // =========================
         public IActionResult AdminProfile()
         {
@@ -765,19 +810,26 @@ namespace Inventory_System.Controllers
                 return RedirectToAction("AccessDenied", "Account");
 
             var username = HttpContext.Session.GetString("Username");
+            // Check for messages in TempData and move to ViewData
+            if (TempData["SuccessMessage"] != null)
+            {
+                ViewData["SuccessMessage"] = TempData["SuccessMessage"];
+            }
+            if (TempData["ErrorMessage"] != null)
+            {
+                ViewData["ErrorMessage"] = TempData["ErrorMessage"];
+            }
 
-            // Hardcoded admin account
+            // For hardcoded admin account
             if (username == "admin")
             {
                 var defaultAdmin = new User
                 {
-                    FullName = "Administrator",
+                    FullName = HttpContext.Session.GetString("Admin_FullName") ?? "Administrator",
                     Username = "admin",
-                    Email = "admin@email.com",
+                    Email = HttpContext.Session.GetString("Admin_Email") ?? "admin@email.com",
                     Role = "Admin",
                     Status = "Active",
-                    ContactNumber = "N/A",
-                    Address = "N/A",
                     ProfilePicture = HttpContext.Session.GetString("ProfilePicture") ?? "default-profile.png"
                 };
 
@@ -806,10 +858,9 @@ namespace Inventory_System.Controllers
             // HARD-CODED ADMIN
             if (username == "admin")
             {
+                // Store all data in session for hardcoded admin
                 HttpContext.Session.SetString("Admin_FullName", updatedData.FullName ?? "Administrator");
                 HttpContext.Session.SetString("Admin_Email", updatedData.Email ?? "admin@email.com");
-                HttpContext.Session.SetString("Admin_Contact", updatedData.ContactNumber ?? "N/A");
-                HttpContext.Session.SetString("Admin_Address", updatedData.Address ?? "N/A");
 
                 TempData["SuccessMessage"] = "Profile updated successfully!";
                 return RedirectToAction("AdminProfile");
@@ -822,15 +873,12 @@ namespace Inventory_System.Controllers
             {
                 admin.FullName = updatedData.FullName;
                 admin.Email = updatedData.Email;
-                admin.ContactNumber = updatedData.ContactNumber;
-                admin.Address = updatedData.Address;
                 _context.SaveChanges();
             }
 
             TempData["SuccessMessage"] = "Profile updated successfully!";
             return RedirectToAction("AdminProfile");
         }
-
 
         [HttpPost]
         public async Task<IActionResult> UpdateProfilePicture(IFormFile ProfileImage)
@@ -863,23 +911,6 @@ namespace Inventory_System.Controllers
 
             string username = HttpContext.Session.GetString("Username");
 
-            // Default admin (hardcoded)
-            User admin = null;
-            if (username == "admin")
-            {
-                admin = new User
-                {
-                    Username = "admin",
-                    ProfilePicture = HttpContext.Session.GetString("ProfilePicture") ?? "default-profile.png"
-                };
-            }
-            else
-            {
-                admin = _context.Users.FirstOrDefault(u => u.Username == username && u.Role == "Admin");
-                if (admin == null)
-                    return RedirectToAction("Login", "Account");
-            }
-
             // Create upload folder
             var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "profile");
             if (!Directory.Exists(uploadsFolder))
@@ -893,24 +924,43 @@ namespace Inventory_System.Controllers
             using (var stream = new FileStream(newFilePath, FileMode.Create))
                 await ProfileImage.CopyToAsync(stream);
 
-            // Delete old picture (if not default)
-            if (!string.IsNullOrEmpty(admin.ProfilePicture) &&
-                admin.ProfilePicture != "default-profile.png")
+            // Handle hardcoded admin
+            if (username == "admin")
             {
-                var oldImagePath = Path.Combine(uploadsFolder, admin.ProfilePicture);
-                if (System.IO.File.Exists(oldImagePath))
-                    System.IO.File.Delete(oldImagePath);
-            }
+                // Delete old picture if it exists and is not the default
+                var currentPicture = HttpContext.Session.GetString("ProfilePicture") ?? "default-profile.png";
+                if (!string.IsNullOrEmpty(currentPicture) && currentPicture != "default-profile.png")
+                {
+                    var oldImagePath = Path.Combine(uploadsFolder, currentPicture);
+                    if (System.IO.File.Exists(oldImagePath))
+                        System.IO.File.Delete(oldImagePath);
+                }
 
-            // Update database only if admin is from DB
-            if (username != "admin")
+                // Update session
+                HttpContext.Session.SetString("ProfilePicture", newFileName);
+            }
+            else
             {
-                admin.ProfilePicture = newFileName;
-                _context.SaveChanges();
-            }
+                // Handle database admin
+                var admin = _context.Users.FirstOrDefault(u => u.Username == username && u.Role == "Admin");
+                if (admin != null)
+                {
+                    // Delete old picture if it exists and is not the default
+                    if (!string.IsNullOrEmpty(admin.ProfilePicture) && admin.ProfilePicture != "default-profile.png")
+                    {
+                        var oldImagePath = Path.Combine(uploadsFolder, admin.ProfilePicture);
+                        if (System.IO.File.Exists(oldImagePath))
+                            System.IO.File.Delete(oldImagePath);
+                    }
 
-            // Update session for hardcoded admin or DB admin
-            HttpContext.Session.SetString("ProfilePicture", newFileName);
+                    // Update database
+                    admin.ProfilePicture = newFileName;
+                    _context.SaveChanges();
+
+                    // Update session
+                    HttpContext.Session.SetString("ProfilePicture", newFileName);
+                }
+            }
 
             TempData["SuccessMessage"] = "Profile picture updated successfully!";
             return RedirectToAction("AdminProfile");

@@ -12,9 +12,10 @@ namespace Inventory_System.Controllers
     {
         private readonly InventoryDbContext _context;
         private readonly IWebHostEnvironment _environment;
-        public UserController(InventoryDbContext context)
+        public UserController(InventoryDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
         // 🧭 USER DASHBOARD
         public IActionResult UserDashboard()
@@ -33,10 +34,17 @@ namespace Inventory_System.Controllers
             var userId = user.UserID;
 
             // 📊 Dashboard Summary
-            ViewBag.TotalItems = _context.Equipment.Count(e => e.Status == "Available" && e.Quantity > 0);
+            // FIXED: Only count borrowable equipment for the dashboard card
+            ViewBag.TotalItems = _context.Equipment.Count(e => e.Status == "Available" && e.Quantity > 0 && e.Label == "Borrowable");
             ViewBag.ReturnedCount = _context.BorrowRecords.Count(b => b.UserID == userId && b.Status == "Returned");
             ViewBag.BorrowedCount = _context.BorrowRecords.Count(b => b.UserID == userId && b.Status == "Borrowed");
-            ViewBag.OverdueCount = _context.BorrowRecords.Count(b => b.UserID == userId && b.Status == "Overdue");
+
+            // FIXED: Calculate overdue count based on date comparison, not just status
+            var overdueCount = _context.BorrowRecords
+                .Count(b => b.UserID == userId &&
+                           b.Status == "Borrowed" &&
+                           b.ExpectedReturnDate < DateTime.Now);
+            ViewBag.OverdueCount = overdueCount;
 
             // 🔹 Currently Borrowed Items
             ViewBag.BorrowedItems = _context.BorrowRecords
@@ -53,9 +61,11 @@ namespace Inventory_System.Controllers
                       })
                 .ToList();
 
-            // 🔹 Overdue Items - FIXED: Properly handle DateTime subtraction
+            // 🔹 Overdue Items - FIXED: Check for borrowed items with past expected return date
             var overdueRecords = _context.BorrowRecords
-                .Where(b => b.UserID == userId && b.Status == "Overdue")
+                .Where(b => b.UserID == userId &&
+                           b.Status == "Borrowed" &&
+                           b.ExpectedReturnDate < DateTime.Now)
                 .Join(_context.Equipment,
                       b => b.EquipmentID,
                       e => e.EquipmentID,
@@ -81,8 +91,9 @@ namespace Inventory_System.Controllers
             if (HttpContext.Session.GetString("Role") != "User")
                 return RedirectToAction("AccessDenied", "Account");
 
+            // FIXED: Only show borrowable equipment (not non-borrowable)
             var availableEquipment = _context.Equipment
-                .Where(e => e.Status == "Available" && e.Quantity > 0)
+                .Where(e => e.Status == "Available" && e.Quantity > 0 && e.Label == "Borrowable")
                 .OrderBy(e => e.Type)
                 .ToList();
 
@@ -230,6 +241,26 @@ namespace Inventory_System.Controllers
                 .ToList();
 
             return View(history);
+        }
+
+        // 🔄 AUTO UPDATE OVERDUE STATUS (Call this from dashboard or add as background task)
+        private void UpdateOverdueStatus(int userId)
+        {
+            var overdueRecords = _context.BorrowRecords
+                .Where(b => b.UserID == userId &&
+                           b.Status == "Borrowed" &&
+                           b.ExpectedReturnDate < DateTime.Now)
+                .ToList();
+
+            foreach (var record in overdueRecords)
+            {
+                record.Status = "Overdue";
+            }
+
+            if (overdueRecords.Any())
+            {
+                _context.SaveChanges();
+            }
         }
 
         // ⚙️ USER SETTINGS (GET)

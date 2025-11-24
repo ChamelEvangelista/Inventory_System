@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Admin Reports";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["ActivePage"] = "Reports"; // Add this for sidebar highlighting
 }
 
 <div class="container-fluid mt-4">
@@ -12,9 +13,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold text-primary">📊 Reports and Analytics</h2>
         <div>
-            <a asp-controller="Admin" asp-action="ExportToExcel" class="btn btn-outline-success me-2">
-                <i class="bi bi-file-earmark-excel"></i> Export to Excel
-            </a>
+            <!-- Removed Export to Excel button -->
             <a asp-controller="Admin" asp-action="ExportToPDF" class="btn btn-outline-danger">
                 <i class="bi bi-file-earmark-pdf"></i> Export to PDF
             </a>
@@ -22,7 +21,7 @@
     </div>
 
     <!-- ========================= -->
-    <!-- SUMMARY CARDS -->
+    <!-- SUMMARY CARDS - FIXED LOGIC -->
     <!-- ========================= -->
     <div class="row g-3 mb-4">
         <div class="col-md-2 col-sm-6">
@@ -76,18 +75,20 @@
     </div>
 
     <!-- ========================= -->
-    <!-- CHARTS SECTION -->
+    <!-- CHARTS SECTION - UPDATED -->
     <!-- ========================= -->
     <div class="row mb-4">
+        <!-- Bar Chart: Equipment Quantity by Type -->
         <div class="col-md-6 mb-3">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white fw-bold">Borrowed Items by User Type</div>
+                <div class="card-header bg-primary text-white fw-bold">Equipment Quantity by Type</div>
                 <div class="card-body">
-                    <canvas id="borrowByUserTypeChart"></canvas>
+                    <canvas id="equipmentByTypeChart"></canvas>
                 </div>
             </div>
         </div>
 
+        <!-- Bar Chart: Top 5 Most Borrowed Equipment -->
         <div class="col-md-6 mb-3">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-primary text-white fw-bold">Top 5 Most Borrowed Equipment</div>
@@ -99,14 +100,14 @@
     </div>
 
     <!-- ========================= -->
-    <!-- OVERDUE RECORDS TABLE -->
+    <!-- BORROWING RECORDS TABLE - REPLACED OVERDUE TABLE -->
     <!-- ========================= -->
     <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-danger text-white fw-bold">
-            Overdue Borrowed Items
+        <div class="card-header bg-primary text-white fw-bold">
+            Recent Borrowing Records
         </div>
         <div class="card-body">
-            @if (Model.OverdueRecords.Any())
+            @if (Model.BorrowingRecords.Any())
             {
                 <div class="table-responsive">
                     <table class="table table-striped table-hover align-middle">
@@ -115,21 +116,27 @@
                                 <th>Borrow ID</th>
                                 <th>Borrower</th>
                                 <th>Equipment</th>
+                                <th>Quantity</th>
                                 <th>Borrow Date</th>
-                                <th>Expected Return</th>
-                                <th>Days Overdue</th>
+                                <th>Return Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var record in Model.OverdueRecords)
+                            @foreach (var record in Model.BorrowingRecords)
                             {
                                 <tr>
                                     <td>@record.BorrowID</td>
                                     <td>@record.Borrower</td>
                                     <td>@record.Equipment</td>
+                                    <td>@record.Quantity</td>
                                     <td>@record.BorrowDate.ToString("MMM dd, yyyy")</td>
-                                    <td>@record.ExpectedReturn.ToString("MMM dd, yyyy")</td>
-                                    <td class="text-danger fw-bold">@record.DaysOverdue</td>
+                                    <td>@(record.ReturnDate?.ToString("MMM dd, yyyy") ?? "Not Returned")</td>
+                                    <td>
+                                        <span class="badge @(record.Status == "Borrowed" ? "bg-warning" : record.Status == "Returned" ? "bg-success" : "bg-secondary")">
+                                            @record.Status
+                                        </span>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -138,7 +145,7 @@
             }
             else
             {
-                <p class="text-muted">No overdue records at the moment.</p>
+                <p class="text-muted">No borrowing records found.</p>
             }
         </div>
     </div>
@@ -151,23 +158,58 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Borrowed by User Type
-        const userTypeLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowedByUserType.Keys));
-        const userTypeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.BorrowedByUserType.Values));
+        // Equipment Quantity by Type (Bar Chart)
+        const equipmentTypeLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.EquipmentByType.Keys));
+        const equipmentTypeData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.EquipmentByType.Values));
 
-        new Chart(document.getElementById('borrowByUserTypeChart'), {
-            type: 'pie',
+        new Chart(document.getElementById('equipmentByTypeChart'), {
+            type: 'bar',
             data: {
-                labels: userTypeLabels,
+                labels: equipmentTypeLabels,
                 datasets: [{
-                    data: userTypeData,
-                    backgroundColor: ['#007bff', '#ffc107', '#28a745']
+                    label: 'Total Quantity',
+                    data: equipmentTypeData,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545',
+                        '#6f42c1', '#fd7e14', '#20c997'
+                    ],
+                    borderColor: [
+                        '#0056b3', '#1e7e34', '#e0a800', '#c82333',
+                        '#5a3596', '#e56107', '#199d7a'
+                    ],
+                    borderWidth: 1
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Equipment Distribution by Type'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantity'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Equipment Type'
+                        }
+                    }
+                }
+            }
         });
 
-        // Top Borrowed Equipment
+        // Top Borrowed Equipment (Bar Chart)
         const topLabels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopBorrowedEquipment.Keys));
         const topData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.TopBorrowedEquipment.Values));
 
@@ -178,10 +220,35 @@
                 datasets: [{
                     label: 'Times Borrowed',
                     data: topData,
-                    backgroundColor: '#007bff'
+                    backgroundColor: '#007bff',
+                    borderColor: '#0056b3',
+                    borderWidth: 1
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Most Frequently Borrowed Equipment'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Times Borrowed'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Equipment Name'
+                        }
+                    }
+                }
+            }
         });
     </script>
 }

@@ -6,124 +6,204 @@
 
     var userType = Context.Session.GetString("UserType");
     var userName = Context.Session.GetString("Username");
+
+    // Get distinct types for filter dropdown
     var types = Model?.Select(e => e.Type).Distinct().OrderBy(t => t).ToList() ?? new List<string>();
 }
 
 <div class="container-fluid py-4">
-
     <!-- Page Header -->
     <div class="mb-4">
-        <h2 class="fw-bold text-dark mb-2">Borrow Equipment</h2>
-        <p class="text-muted mb-0">
-            @if (userType == "Instructor")
-            {
-                <span>You can borrow up to <strong class="text-primary">3 equipment items</strong> at a time.</span>
-            }
-            else
-            {
-                <span>You can borrow <strong class="text-primary">1 equipment item</strong> at a time.</span>
-            }
-        </p>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h3 fw-bold mb-2" style="color: #0F2947;">
+                    <i class="bi bi-laptop me-2"></i>Borrow Equipment
+                </h2>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Browse and borrow available equipment items
+                    @if (userType == "Instructor")
+                    {
+                        <span>- You can borrow up to <strong class="text-primary">3 items</strong> at a time</span>
+                    }
+                    else
+                    {
+                        <span>- You can borrow <strong class="text-primary">1 item</strong> at a time</span>
+                    }
+                </p>
+            </div>
+        </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card shadow-sm mb-4 border-0">
-        <div class="card-body py-3">
-            <div class="row g-3 align-items-end">
+    <!-- Search & Filter Section -->
+    <div class="card shadow-sm mb-4" style="border: 2px solid #e3f2fd; border-radius: 12px;">
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <!-- Search Box -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label fw-semibold small" style="color: #0F2947;">
+                        <i class="bi bi-search me-1"></i>Search
+                    </label>
+                    <input type="text"
+                           id="searchInput"
+                           class="form-control"
+                           placeholder="Search by name or description"
+                           style="border: 2px solid #e3f2fd;" />
+                </div>
 
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold text-secondary small mb-1">Filter by Type</label>
-                    <select id="typeFilter" class="form-select form-select-sm">
+                <!-- Type Dropdown -->
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label fw-semibold small" style="color: #0F2947;">
+                        <i class="bi bi-tags me-1"></i>Type
+                    </label>
+                    <select id="typeFilter" class="form-select" style="border: 2px solid #e3f2fd;">
                         <option value="">All Types</option>
-                        @foreach (var typ in types)
+                        @foreach (var type in types)
                         {
-                            <option value="@typ">@typ</option>
+                            <option value="@type">@type</option>
                         }
                     </select>
                 </div>
 
-                <div class="col-md-4">
-                    <button id="resetFilters" class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                <!-- Action Buttons -->
+                <div class="col-lg-3 col-md-12 d-flex align-items-end gap-2">
+                    <button id="filterBtn"
+                            class="btn btn-primary flex-fill"
+                            style="background: #0F2947; border: none;">
+                        <i class="bi bi-filter me-1"></i>Filter
+                    </button>
+                    <button id="clearFilters"
+                            class="btn btn-outline-secondary flex-fill"
+                            style="border: 2px solid #e3f2fd; color: #0F2947;">
+                        <i class="bi bi-x-circle me-1"></i>Clear
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Equipment Table -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <!-- Equipment Cards Grid -->
+    <div class="row g-4" id="equipmentList">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-xl-2dot4 col-lg-3 col-md-4 col-sm-6 equipment-card"
+                     data-id="@item.EquipmentID"
+                     data-name="@item.Name.ToLower()"
+                     data-type="@item.Type"
+                     data-label="@item.Label"
+                     data-quantity="@item.Quantity"
+                     data-status="@item.Status">
 
-            <h5 class="fw-semibold text-dark mb-3">
-                <i class="bi bi-laptop me-2 text-primary"></i> Available Equipment
-            </h5>
+                    <div class="card h-100 shadow-sm equipment-item-card"
+                         style="border: 2px solid #e3f2fd; border-radius: 12px; transition: all 0.3s ease; overflow: hidden;">
 
-            <div class="table-responsive">
-                <table class="table align-middle table-hover">
-                    <thead class="table-light">
-                        <tr class="text-secondary small">
-                            <th>Label</th>
-                            <th>Equipment Name</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th class="text-center">Available</th>
-                            <th class="text-center">Action</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="equipmentTableBody">
-                        @if (Model != null && Model.Any())
-                        {
-                            foreach (var item in Model)
+                        <!-- Equipment Image -->
+                        <div class="position-relative" style="height: 180px; overflow: hidden; background-color: #f8fdff;">
+                            @if (!string.IsNullOrEmpty(item.ImagePath))
                             {
-                                <tr ="@item.Type"
-                                    data-equipmentid="@item.EquipmentID"
-                                    data-label="@item.Label"
-                                    data-name="@item.Name"
-                                    data-description="@item.Description"
-                                    data-typeitem="@item.Type"
-                                    data-quantity="@item.Quantity">
-
-                                    <td class="small">@item.Label</td>
-                                    <td class="fw-semibold">@item.Name</td>
-                                    <td class="small">@item.Type</td>
-                                    <td class="small text-muted">@item.Description</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-primary rounded-pill">@item.Quantity</span>
-                                    </td>
-
-                                    <td class="text-center">
-                                        @if (item.Quantity > 0)
-                                        {
-                                            <button class="btn btn-primary btn-sm borrowBtn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#borrowModal"
-                                                    style="min-width: 80px;">
-                                                <i class="bi bi-box-arrow-right me-1"></i>Borrow
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-secondary btn-sm" disabled style="min-width: 80px;">
-                                                Unavailable
-                                            </button>
-                                        }
-                                    </td>
-                                </tr>
+                                <img src="~/images/equipment/@item.ImagePath"
+                                     alt="@item.Name"
+                                     class="w-100 h-100"
+                                     style="object-fit: cover;"
+                                     onerror="this.src='/images/equipment/no-image.png'" />
                             }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="7" class="text-muted text-center py-4">No equipment available.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                            else
+                            {
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-box fa-4x" style="color: #e3f2fd; opacity: 0.5;"></i>
+                                </div>
+                            }
 
-        </div>
+                            <!-- Status Badge Overlay -->
+                            <div class="position-absolute top-0 end-0 m-2">
+                                @if (item.Quantity > 0)
+                                {
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: #28a745; font-size: 0.7rem;">
+                                        <i class="bi bi-check-circle me-1"></i>Available
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: #dc3545; font-size: 0.7rem;">
+                                        <i class="bi bi-x-circle me-1"></i>Out of Stock
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="card-body d-flex flex-column p-3">
+                            <!-- Equipment Name -->
+                            <h6 class="card-title fw-bold mb-2" style="color: #0F2947; font-size: 0.95rem;">
+                                @item.Name
+                            </h6>
+
+                            <!-- Description -->
+                            <p class="card-text text-muted small mb-3" style="font-size: 0.8rem; line-height: 1.4;">
+                                @(item.Description?.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description)
+                            </p>
+
+                            <!-- Equipment Details -->
+                            <div class="mb-3" style="font-size: 0.8rem;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-tag me-2" style="color: #e3f2fd; width: 16px;"></i>
+                                    <span class="text-muted">Type:</span>
+                                    <span class="fw-semibold ms-1" style="color: #0F2947;">@item.Type</span>
+                                </div>
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-bookmark me-2" style="color: #e3f2fd; width: 16px;"></i>
+                                    <span class="text-muted">Label:</span>
+                                    <span class="fw-semibold ms-1" style="color: #0F2947;">@item.Label</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-boxes me-2" style="color: #e3f2fd; width: 16px;"></i>
+                                    <span class="text-muted">Quantity:</span>
+                                    <span class="fw-bold ms-1 quantity-display" style="color: @(item.Quantity > 0 ? "#28a745" : "#dc3545");">@item.Quantity</span>
+                                </div>
+                            </div>
+
+                            <!-- Borrow Button -->
+                            <div class="mt-auto">
+                                @if (item.Quantity > 0)
+                                {
+                                    <button class="btn btn-sm w-100 py-2 borrow-btn"
+                                            data-equipmentid="@item.EquipmentID"
+                                            data-label="@item.Label"
+                                            data-name="@item.Name"
+                                            data-type="@item.Type"
+                                            data-quantity="@item.Quantity"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#borrowModal"
+                                            style="background: #0F2947; color: white; border: none; font-weight: 600; transition: all 0.2s;">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Borrow
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm w-100 py-2" disabled
+                                            style="background: #6c757d; color: white; border: none; font-weight: 600;">
+                                        <i class="bi bi-x-circle me-1"></i>Unavailable
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-box-open fa-4x" style="color: #e3f2fd; opacity: 0.5;"></i>
+                    </div>
+                    <h4 style="color: #0F2947;">No Equipment Available</h4>
+                    <p class="text-muted">No borrowable equipment items are currently available.</p>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -200,45 +280,85 @@
 
 @section Scripts {
     <script>
-        const rows = document.querySelectorAll("#equipmentTableBody tr");
-        const modalEquipmentID = document.getElementById("modalEquipmentID");
-        const modalLabel = document.getElementById("modalLabel");
-        const modalName = document.getElementById("modalName");
-        const modalType = document.getElementById("modalType");
-        const modalQuantity = document.getElementById("modalQuantity");
-        const modalBorrowQuantity = document.getElementById("modalBorrowQuantity");
+        $(document).ready(function () {
+            // Modal setup
+            $('.borrow-btn').on('click', function () {
+                const equipmentId = $(this).data('equipmentid');
+                const label = $(this).data('label');
+                const name = $(this).data('name');
+                const type = $(this).data('type');
+                const quantity = $(this).data('quantity');
 
-        document.querySelectorAll(".borrowBtn").forEach(btn => {
-            btn.addEventListener("click", function () {
-                const row = this.closest("tr");
-                modalEquipmentID.value = row.dataset.equipmentid;
-                modalLabel.value = row.dataset.label;
-                modalName.value = row.dataset.name;
-                modalType.value = row.dataset.typeitem;
-                modalQuantity.value = row.dataset.quantity;
-                modalBorrowQuantity.max = row.dataset.quantity;
-                modalBorrowQuantity.value = 1;
+                $('#modalEquipmentID').val(equipmentId);
+                $('#modalLabel').val(label);
+                $('#modalName').val(name);
+                $('#modalType').val(type);
+                $('#modalQuantity').val(quantity);
+                $('#modalBorrowQuantity').attr('max', quantity);
+                $('#modalBorrowQuantity').val(1);
             });
-        });
 
-        document.getElementById("typeFilter").addEventListener("change", applyFilters);
-        document.getElementById("resetFilters").addEventListener("click", () => {
-            document.getElementById("categoryFilter").value = "";
-            document.getElementById("typeFilter").value = "";
-            applyFilters();
-        });
-
-        function applyFilters() {
-            const typ = document.getElementById("typeFilter").value.toLowerCase();
-
-            rows.forEach(row => {
-                const rc = row.dataset.category.toLowerCase();
-                const rt = row.dataset.type.toLowerCase();
-                row.style.display = (
-                    (!cat || rc === cat) &&
-                    (!typ || rt === typ)
-                ) ? "" : "none";
+            // Search functionality
+            $('#searchInput').on('keyup', function () {
+                const searchValue = $(this).val().toLowerCase();
+                filterEquipment();
             });
-        }
+
+            // Type filter
+            $('#typeFilter').on('change', function () {
+                filterEquipment();
+            });
+
+            // Filter button
+            $('#filterBtn').on('click', function () {
+                filterEquipment();
+            });
+
+            // Clear filters
+            $('#clearFilters').on('click', function () {
+                $('#searchInput').val('');
+                $('#typeFilter').val('');
+                filterEquipment();
+            });
+
+            function filterEquipment() {
+                const searchValue = $('#searchInput').val().toLowerCase();
+                const typeValue = $('#typeFilter').val().toLowerCase();
+
+                $('.equipment-card').each(function () {
+                    const name = $(this).data('name');
+                    const type = $(this).data('type').toLowerCase();
+                    const matchesSearch = name.includes(searchValue);
+                    const matchesType = !typeValue || type === typeValue;
+
+                    $(this).toggle(matchesSearch && matchesType);
+                });
+
+                // Show no results message if no cards are visible
+                const visibleCards = $('.equipment-card:visible').length;
+                if (visibleCards === 0) {
+                    $('#equipmentList').html(`
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="bi bi-search fa-4x" style="color: #e3f2fd; opacity: 0.5;"></i>
+                                </div>
+                                <h4 style="color: #0F2947;">No Equipment Found</h4>
+                                <p class="text-muted">No equipment items match your current filters.</p>
+                                <button id="resetFiltersBtn" class="btn btn-outline-primary mt-3">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filters
+                                </button>
+                            </div>
+                        </div>
+                    `);
+
+                    $('#resetFiltersBtn').on('click', function () {
+                        $('#searchInput').val('');
+                        $('#typeFilter').val('');
+                        location.reload(); // Reload to show all equipment
+                    });
+                }
+            }
+        });
     </script>
 }

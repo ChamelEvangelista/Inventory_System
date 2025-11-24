@@ -4,6 +4,9 @@
     Layout = "_AdminLayout";
     ViewData["Title"] = "Equipment List";
     ViewData["ActivePage"] = "EquipmentList";
+
+    // Get active borrow records from ViewBag
+    var activeBorrowRecords = ViewBag.ActiveBorrowRecords as List<int> ?? new List<int>();
 }
 
 <div class="container-fluid py-4">
@@ -29,8 +32,8 @@
 
     <!-- Status Counter Badges -->
     @{
-        int availableCount = Model.Count(e => e.Quantity > 0 && e.Label == "Borrowable");
-        int borrowedCount = Model.Count(e => e.Status == "Borrowed");
+        int availableCount = Model.Count(e => e.Quantity > 0 && e.Label == "Borrowable" && !activeBorrowRecords.Contains(e.EquipmentID));
+        int borrowedCount = activeBorrowRecords.Count;
         int outOfStockCount = Model.Count(e => e.Quantity == 0);
     }
 
@@ -54,7 +57,7 @@
         </a>
     </div>
 
-    <!-- Search & Filter Section -->
+    <!-- Rest of your existing Search & Filter Section remains the same -->
     <div class="card shadow-sm mb-4" style="border: 2px solid var(--powder-blue); border-radius: 12px;">
         <div class="card-body p-4">
             <form method="get" asp-action="EquipmentList">
@@ -141,13 +144,16 @@
         {
             foreach (var item in Model)
             {
+                var isCurrentlyBorrowed = activeBorrowRecords.Contains(item.EquipmentID);
+
                 <div class="col-xl-2dot4 col-lg-3 col-md-4 col-sm-6 equipment-card"
                      data-id="@item.EquipmentID"
                      data-name="@item.Name.ToLower()"
                      data-type="@item.Type"
                      data-label="@item.Label"
                      data-quantity="@item.Quantity"
-                     data-status="@item.Status">
+                     data-status="@item.Status"
+                     data-borrowed="@isCurrentlyBorrowed.ToString().ToLower()">
 
                     <div class="card h-100 shadow-sm equipment-item-card"
                          style="border: 2px solid var(--powder-blue); border-radius: 12px; transition: all 0.3s ease; overflow: hidden;">
@@ -171,7 +177,13 @@
 
                             <!-- Status Badge Overlay -->
                             <div class="position-absolute top-0 end-0 m-2">
-                                @if (item.Quantity > 0 && item.Label == "Borrowable")
+                                @if (isCurrentlyBorrowed && item.Label == "Borrowable")
+                                {
+                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--warning); font-size: 0.7rem;">
+                                        <i class="fas fa-hand-holding me-1"></i>Borrowed
+                                    </span>
+                                }
+                                else if (item.Quantity > 0 && item.Label == "Borrowable")
                                 {
                                     <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--success); font-size: 0.7rem;">
                                         <i class="fas fa-check-circle me-1"></i>Available
@@ -181,12 +193,6 @@
                                 {
                                     <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--danger); font-size: 0.7rem;">
                                         <i class="fas fa-times-circle me-1"></i>Out of Stock
-                                    </span>
-                                }
-                                else if (item.Status == "Borrowed")
-                                {
-                                    <span class="badge rounded-pill px-2 py-1 status-badge" style="background-color: var(--warning); font-size: 0.7rem;">
-                                        <i class="fas fa-hand-holding me-1"></i>Borrowed
                                     </span>
                                 }
                                 else
@@ -202,6 +208,10 @@
                             <!-- Equipment Name -->
                             <h6 class="card-title fw-bold mb-2" style="color: var(--yale-blue); font-size: 0.95rem;">
                                 @item.Name
+                                @if (isCurrentlyBorrowed)
+                                {
+                                    <small class="text-warning ms-1"><i class="fas fa-hand-holding"></i></small>
+                                }
                             </h6>
 
                             <!-- Description -->
@@ -224,17 +234,35 @@
                                 <div class="d-flex align-items-center">
                                     <i class="fas fa-boxes me-2" style="color: var(--powder-blue); width: 16px;"></i>
                                     <span class="text-muted">Quantity:</span>
-                                    <span class="fw-bold ms-1 quantity-display" style="color: var(--success);">@item.Quantity</span>
+                                    <span class="fw-bold ms-1 quantity-display" style="color: @(item.Quantity > 0 ? "var(--success)" : "var(--danger)");">@item.Quantity</span>
                                 </div>
+                                @if (isCurrentlyBorrowed)
+                                {
+                                    <div class="d-flex align-items-center mt-1">
+                                        <i class="fas fa-clock me-2" style="color: var(--warning); width: 16px;"></i>
+                                        <span class="text-muted">Status:</span>
+                                        <span class="fw-semibold ms-1" style="color: var(--warning);">Currently Borrowed</span>
+                                    </div>
+                                }
                             </div>
 
                             <!-- Manage Button -->
                             <div class="mt-auto">
-                                <a href="@Url.Action("EditEquipment", "Admin", new { id = item.EquipmentID })"
-                                   class="btn btn-sm w-100 py-2"
-                                   style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); color: white; border: none; font-weight: 600; transition: all 0.2s;">
-                                    <i class="fas fa-edit me-1"></i>Manage
-                                </a>
+                                @if (item.EquipmentID > 0)
+                                {
+                                    <a href="@Url.Action("EditEquipment", "Admin", new { id = item.EquipmentID })"
+                                       class="btn btn-sm w-100 py-2"
+                                       style="background: linear-gradient(135deg, var(--yale-blue) 0%, var(--medium-blue) 100%); color: white; border: none; font-weight: 600; transition: all 0.2s;"
+                                       onclick="return validateEquipmentId(@item.EquipmentID)">
+                                        <i class="fas fa-edit me-1"></i>Manage
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm w-100 py-2" disabled style="background-color: #ccc; color: white; border: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Invalid ID
+                                    </button>
+                                }
                             </div>
                         </div>
                     </div>
@@ -309,21 +337,31 @@
 
                         // Update status badge
                         var statusBadge = card.find('.status-badge');
-                        updateStatusBadge(statusBadge, item.quantity, item.label, item.status);
+                        updateStatusBadge(statusBadge, item.quantity, item.label, item.isBorrowed);
+
+                        // Update borrowed indicator in card title
+                        var cardTitle = card.find('.card-title');
+                        if (item.isBorrowed) {
+                            if (!cardTitle.find('.fa-hand-holding').length) {
+                                cardTitle.append(' <small class="text-warning ms-1"><i class="fas fa-hand-holding"></i></small>');
+                            }
+                        } else {
+                            cardTitle.find('.fa-hand-holding').parent().remove();
+                        }
                     }
                 });
             }
 
-            function updateStatusBadge(statusBadge, quantity, label, status) {
-                if (quantity > 0 && label === 'Borrowable') {
+            function updateStatusBadge(statusBadge, quantity, label, isBorrowed) {
+                if (isBorrowed && label === 'Borrowable') {
+                    statusBadge.html('<i class="fas fa-hand-holding me-1"></i>Borrowed');
+                    statusBadge.css('background-color', 'var(--warning)');
+                } else if (quantity > 0 && label === 'Borrowable') {
                     statusBadge.html('<i class="fas fa-check-circle me-1"></i>Available');
                     statusBadge.css('background-color', 'var(--success)');
                 } else if (quantity === 0) {
                     statusBadge.html('<i class="fas fa-times-circle me-1"></i>Out of Stock');
                     statusBadge.css('background-color', 'var(--danger)');
-                } else if (status === 'Borrowed') {
-                    statusBadge.html('<i class="fas fa-hand-holding me-1"></i>Borrowed');
-                    statusBadge.css('background-color', 'var(--warning)');
                 } else {
                     statusBadge.html('<i class="fas fa-ban me-1"></i>Non-Borrowable');
                     statusBadge.css('background-color', 'var(--secondary)');
@@ -338,6 +376,22 @@
 
             // Start periodic updates
             startEquipmentUpdates();
+
+            // NEW CODE: Equipment ID validation and debugging
+            function validateEquipmentId(equipmentId) {
+                if (equipmentId <= 0) {
+                    alert('Invalid equipment ID. Please contact administrator.');
+                    return false;
+                }
+                return true;
+            }
+
+            // Debug: Log equipment IDs for troubleshooting
+            $('.equipment-card').each(function() {
+                var equipmentId = $(this).data('id');
+                console.log('Equipment ID:', equipmentId, 'Valid:', equipmentId > 0);
+            });
         });
     </script>
+}
 }

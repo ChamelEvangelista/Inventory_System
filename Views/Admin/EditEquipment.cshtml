@@ -108,7 +108,16 @@
                                     <select asp-for="Type"
                                             class="form-select"
                                             style="border: 2px solid var(--powder-blue);">
-                                        @foreach (var type in ViewBag.Types as string[])
+                                        @foreach (var type in (ViewBag.Types as string[] ?? new string[]
+                                                                                {
+                                                                                "Office Supplies",
+                                                                                "Cleaning Supplies",
+                                                                                "ICT Equipment",
+                                                                                "Office Equipment",
+                                                                                "Audio-Visual Equipment",
+                                                                                "Sports Equipment",
+                                                                                "Maintenance Tools"
+                                                                                }))
                                         {
                                             <option value="@type" selected="@(Model.Type == type)">@type</option>
                                         }
@@ -123,9 +132,9 @@
                                     <select asp-for="Label"
                                             class="form-select"
                                             style="border: 2px solid var(--powder-blue);">
-                                        @foreach (var lbl in ViewBag.Labels as string[])
+                                        @foreach (var label in (ViewBag.Labels as string[] ?? new string[] { "Borrowable", "Non-Borrowable" }))
                                         {
-                                            <option value="@lbl" selected="@(Model.Label == lbl)">@lbl</option>
+                                            <option value="@label" selected="@(Model.Label == label)">@label</option>
                                         }
                                     </select>
                                     <span asp-validation-for="Label" class="text-danger small"></span>
